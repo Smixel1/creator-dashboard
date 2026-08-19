@@ -1,36 +1,73 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CreatorPulse — Creator Analytics Dashboard
 
-## Getting Started
+Внутренняя платформа аналитики для авторов Instagram Reels.
 
-First, run the development server:
+## Быстрый старт
+
+```bash
+cd creator-dashboard
+npm install
+cp .env.example .env
+```
+
+### 1. PostgreSQL (Neon)
+
+1. Создайте бесплатную базу на [neon.tech](https://neon.tech)
+2. Скопируйте connection string (формат):
+
+```
+DATABASE_URL="postgresql://user:password@ep-xxx.region.aws.neon.tech/neondb?sslmode=require"
+```
+
+3. Вставьте в `.env`
+
+### 2. Переменные окружения
+
+| Переменная | Обязательна | Описание |
+|------------|-------------|----------|
+| `DATABASE_URL` | Да | PostgreSQL (Neon) connection string |
+| `AUTH_SECRET` | Да | Секрет для JWT-сессий (min 32 символа) |
+| `APIFY_API_TOKEN` | Нет | Токен Apify для реальных данных Instagram |
+| `USE_APIFY` | Нет | `true` — включить Apify вместо mock |
+
+### 3. База данных
+
+```bash
+npm run db:push    # применить schema
+npm run db:seed    # demo user + reels
+```
+
+### 4. Запуск
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Откройте [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**Demo login:**
+- Email: `anna@creator.io`
+- Password: `password123`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Команды
 
-## Learn More
+| Команда | Описание |
+|---------|----------|
+| `npm run dev` | Dev server |
+| `npm run build` | Production build |
+| `npm run db:push` | Применить Prisma schema |
+| `npm run db:seed` | Заполнить demo данными |
 
-To learn more about Next.js, take a look at the following resources:
+## Архитектура
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Next.js 16** App Router + TypeScript
+- **Prisma 7** + PostgreSQL (Neon) + `@prisma/adapter-pg`
+- **JWT auth** через httpOnly cookies
+- **Mock/Apify** Instagram service (server-side only)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Деплой (Vercel)
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Push на GitHub
+2. Подключить Vercel
+3. Добавить env vars: `DATABASE_URL`, `AUTH_SECRET`
+4. Deploy → `npx prisma db push && npm run db:seed`

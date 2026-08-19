@@ -1,0 +1,108 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                String   @id @default(cuid())
+  name              String
+  email             String   @unique
+  passwordHash      String
+  avatarUrl         String?
+  instagramUsername String?
+  locale            String   @default("ru")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  reels             Reel[]
+  passwordResetTokens PasswordResetToken[]
+  instagramConnection InstagramConnection?
+  instagramFollowerSnapshots InstagramFollowerSnapshot[]
+
+  @@index([email])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Reel {
+  id               String     @id @default(cuid())
+  userId           String
+  instagramUrl     String
+  instagramMediaId String?
+  source           String     @default("manual")
+  title            String
+  coverUrl         String
+  views            Int?
+  likes            Int?
+  comments         Int?
+  reach            Int?
+  shares           Int?
+  publishedAt      DateTime
+  syncedAt         DateTime?
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  user             User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stats            ReelStat[]
+
+  @@unique([userId, instagramMediaId])
+  @@index([userId])
+  @@index([publishedAt])
+  @@index([userId, instagramUrl])
+}
+
+model ReelStat {
+  id         String   @id @default(cuid())
+  reelId     String
+  views      Int?
+  likes      Int?
+  comments   Int?
+  reach      Int?
+  shares     Int?
+  recordedAt DateTime @default(now())
+  reel       Reel     @relation(fields: [reelId], references: [id], onDelete: Cascade)
+
+  @@index([reelId])
+  @@index([recordedAt])
+}
+
+model InstagramConnection {
+  id                String    @id @default(cuid())
+  userId            String    @unique
+  instagramUserId   String
+  username          String
+  accountType       String?
+  profilePictureUrl String?
+  followersCount    Int?
+  accessTokenEnc    String
+  tokenExpiresAt    DateTime?
+  lastSyncedAt      DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([instagramUserId])
+}
+
+model InstagramFollowerSnapshot {
+  id             String   @id @default(cuid())
+  userId         String
+  followersCount Int
+  recordedAt     DateTime @default(now())
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, recordedAt])
+}

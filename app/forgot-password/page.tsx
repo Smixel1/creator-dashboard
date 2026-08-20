@@ -1,12 +1,13 @@
 import { AuthPageShell } from "@/components/login/auth-page-shell";
+import { AuthFormCard } from "@/components/login/auth-form-card";
 import { ForgotPasswordForm } from "@/components/login/forgot-password-form";
 
 export default function ForgotPasswordPage() {
   return (
     <AuthPageShell>
-      <div className="rounded-2xl bg-card p-6 sm:p-8 border border-border/25">
+      <AuthFormCard>
         <ForgotPasswordForm />
-      </div>
+      </AuthFormCard>
     </AuthPageShell>
   );
 }

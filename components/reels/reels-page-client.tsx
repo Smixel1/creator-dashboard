@@ -185,9 +185,13 @@ export function ReelsPageClient({
       {filtered.length === 0 ? (
         <ReelsNoSearchResults query={debouncedSearch} />
       ) : view === "grid" ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-          {filtered.map((reel) => (
-            <ReelCard key={reel.id} reel={reel} />
+        <div className="editorial-grid-featured">
+          {filtered.map((reel, index) => (
+            <ReelCard
+              key={reel.id}
+              reel={reel}
+              variant={index === 0 ? "featured" : "grid"}
+            />
           ))}
         </div>
       ) : (

@@ -97,9 +97,11 @@ export function ViewsChart({
           axisLine={false}
           tickLine={false}
           tickFormatter={(v) =>
-            v >= 1000
-              ? `${formatNumber(Math.round(v / 1000))}K`
-              : formatNumber(v)
+            dataKey === "engagement"
+              ? `${Number(v).toFixed(0)}%`
+              : v >= 1000
+                ? `${formatNumber(Math.round(v / 1000))}K`
+                : formatNumber(v)
           }
           width={36}
         />

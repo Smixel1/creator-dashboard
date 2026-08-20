@@ -10,8 +10,8 @@ interface MetricCardProps {
   value: string;
   change?: number;
   className?: string;
-  highlight?: boolean;
   periodLabel?: string;
+  tone?: "default" | "views" | "engagement";
   /** card = bordered surface; ghost = open inline metric */
   variant?: "card" | "ghost";
 }
@@ -21,8 +21,8 @@ export function MetricCard({
   value,
   change,
   className,
-  highlight = false,
   periodLabel,
+  tone = "default",
   variant = "card",
 }: MetricCardProps) {
   const t = useTranslations();
@@ -33,20 +33,16 @@ export function MetricCard({
   return (
     <div
       className={cn(
-        isGhost ? "px-0 py-2" : "surface-soft px-4 py-3.5",
-        highlight && !isGhost && "ring-1 ring-brand-rose/15",
+        isGhost ? "px-0 py-2" : "metric-tile",
         className
       )}
     >
-      <p className="metric-name mb-1.5">{label}</p>
+      <p className="metric-label mb-2">{label}</p>
       <p
         className={cn(
-          "font-semibold tabular-nums tracking-tight leading-none",
-          highlight
-            ? "editorial-heading text-3xl sm:text-4xl text-brand-rose"
-            : isGhost
-              ? "text-xl sm:text-2xl text-foreground"
-              : "text-2xl text-foreground"
+          "metric-value-sm",
+          tone === "views" && "metric-value-views",
+          tone === "engagement" && "metric-value-engagement",
         )}
       >
         {value}
@@ -54,7 +50,7 @@ export function MetricCard({
       {hasChange ? (
         <div
           className={cn(
-            "mt-1.5 inline-flex items-center gap-1 text-xs font-medium",
+            "mt-1.5 inline-flex items-center gap-0.5 text-[11px] font-medium tabular-nums",
             positive ? "text-brand-sage" : "text-destructive"
           )}
         >

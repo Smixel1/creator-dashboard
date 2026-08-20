@@ -12,8 +12,10 @@ import {
   formatReelMetric,
   getReelDisplayCaption,
   getReelFreshnessLabel,
+  getReelSourceLabelKey,
   reelHasEngagementData,
   reelMetricHasData,
+  shouldShowReelSource,
 } from "@/lib/reel-display";
 import { useFormatters } from "@/hooks/use-formatters";
 import { useTranslations } from "@/components/providers/locale-provider";
@@ -26,6 +28,7 @@ interface ReelCardProps {
   variant?: "grid" | "featured" | "compact" | "top" | "recent";
   showBadge?: boolean;
   showCaption?: boolean;
+  showSource?: boolean;
   className?: string;
 }
 
@@ -34,6 +37,7 @@ export function ReelCard({
   variant = "grid",
   showBadge = false,
   showCaption = true,
+  showSource = true,
   className,
 }: ReelCardProps) {
   const t = useTranslations();
@@ -72,36 +76,40 @@ export function ReelCard({
     t("reels.lastUpdated")
   );
   const displayCaption = getReelDisplayCaption(reel);
+  const sourceLabelKey = getReelSourceLabelKey(reel.source);
 
   return (
     <article
       className={cn(
-        "group transition-all duration-250",
-        useCaption &&
-          "rounded-xl overflow-hidden border border-border/25 bg-card hover:border-brand-rose/20",
+        "group transition-all duration-200",
+        useCaption && "content-card-interactive",
         className
       )}
     >
-      <div
-        className={cn(
+        <div className={cn(
           "relative overflow-hidden bg-muted/40",
           useCaption ? "rounded-t-xl" : "rounded-xl",
           isFeatured ? "aspect-[4/5]" : "aspect-[3/4]"
-        )}
-      >
-        <Link href={`/reels/${reel.id}`} className="block h-full">
+        )}>
+        <Link href={`/reels/${reel.id}`} className="absolute inset-0 block">
           <ReelCoverImage
             src={reel.coverUrl}
             alt={displayCaption}
-            className="h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.04]"
+            className="object-cover transition-transform duration-300 ease-out group-hover:scale-[1.04]"
           />
         </Link>
 
-        <div className="absolute inset-0 gradient-overlay-soft opacity-0 pointer-events-none hidden md:block md:group-hover:opacity-100 transition-opacity duration-250" />
+        <div className="absolute inset-0 gradient-overlay-soft opacity-0 pointer-events-none hidden md:block md:group-hover:opacity-100 transition-opacity duration-200" />
 
         {showBadge && (
           <span className="absolute top-2.5 left-2.5 status-badge bg-brand-rose/90 text-white border-0 shadow-sm">
             {t("common.bestReels")}
+          </span>
+        )}
+
+        {showSource && shouldShowReelSource(reel.source) && !showBadge && (
+          <span className="absolute top-2.5 left-2.5 source-pill">
+            {t(sourceLabelKey)}
           </span>
         )}
 
@@ -110,13 +118,13 @@ export function ReelCard({
           target="_blank"
           rel="noopener noreferrer"
           onClick={(e) => e.stopPropagation()}
-          className="absolute top-2.5 right-2.5 hidden md:flex h-7 w-7 items-center justify-center rounded-full bg-white/95 text-foreground opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-105 shadow-sm"
+          className="absolute top-2.5 right-2.5 hidden md:flex h-7 w-7 items-center justify-center rounded-full bg-background/90 text-foreground opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-105 shadow-sm backdrop-blur-sm"
           aria-label={t("common.openInstagram")}
         >
           <ExternalLink className="h-3 w-3" />
         </a>
 
-        <div className="absolute bottom-0 left-0 right-0 p-3 text-white translate-y-2 opacity-0 pointer-events-none hidden md:block md:group-hover:translate-y-0 md:group-hover:opacity-100 transition-all duration-250">
+        <div className="absolute bottom-0 left-0 right-0 p-3 text-white translate-y-2 opacity-0 pointer-events-none hidden md:block md:group-hover:translate-y-0 md:group-hover:opacity-100 transition-all duration-200">
           <div className="flex items-center gap-3 text-xs font-medium">
             <span className="inline-flex items-center gap-1">
               <Eye className="h-3.5 w-3.5" />

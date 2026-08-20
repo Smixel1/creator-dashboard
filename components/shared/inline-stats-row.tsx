@@ -7,67 +7,71 @@ import { TrendingDown, TrendingUp } from "lucide-react";
 export interface InlineStatItem {
   label: string;
   value: string;
-  highlight?: boolean;
   change?: number;
+  tone?: "default" | "views" | "engagement";
 }
 
 interface InlineStatsRowProps {
   items: InlineStatItem[];
-  className?: string;
+  /** `compact` for profile / secondary surfaces */
   size?: "default" | "compact";
+  className?: string;
 }
 
-/** Open stat row — no card wrapper. Used on Dashboard & Profile. */
 export function InlineStatsRow({
   items,
-  className,
   size = "default",
+  className,
 }: InlineStatsRowProps) {
+  const cols =
+    items.length === 5
+      ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-5"
+      : items.length <= 2
+        ? "grid-cols-2"
+        : items.length === 3
+          ? "grid-cols-3"
+          : "grid-cols-2 sm:grid-cols-4";
+
   return (
-    <div
-      className={cn(
-        "flex flex-wrap items-baseline gap-x-8 gap-y-4",
-        size === "compact" && "gap-x-6 gap-y-3",
-        className
-      )}
-    >
+    <div className={cn("grid gap-3", cols, className)}>
       {items.map((item) => {
         const positive = (item.change ?? 0) >= 0;
         const hasChange = item.change !== undefined;
         const changeLabel = hasChange ? cnChange(item.change) : null;
 
         return (
-          <div key={item.label} className="flex flex-col gap-0.5 min-w-[4.5rem]">
-            <div className="flex items-baseline gap-2 flex-wrap">
+          <div
+            key={item.label}
+            className={cn(
+              "metric-tile",
+              size === "compact" && "px-3 py-2.5 sm:px-3 sm:py-2.5",
+            )}
+          >
+            <p className="metric-label mb-2">{item.label}</p>
+            <p
+              className={cn(
+                size === "compact" ? "metric-value-sm" : "metric-value",
+                item.tone === "views" && "metric-value-views",
+                item.tone === "engagement" && "metric-value-engagement",
+              )}
+            >
+              {item.value}
+            </p>
+            {changeLabel ? (
               <span
                 className={cn(
-                  "font-semibold tabular-nums tracking-tight leading-none",
-                  item.highlight
-                    ? "editorial-heading text-2xl sm:text-3xl text-brand-rose"
-                    : size === "compact"
-                      ? "text-lg text-foreground"
-                      : "text-xl sm:text-2xl text-foreground"
+                  "mt-1.5 inline-flex items-center gap-0.5 text-[11px] font-medium tabular-nums",
+                  positive ? "text-brand-sage" : "text-destructive",
                 )}
               >
-                {item.value}
+                {positive ? (
+                  <TrendingUp className="h-3 w-3" />
+                ) : (
+                  <TrendingDown className="h-3 w-3" />
+                )}
+                {changeLabel}
               </span>
-              {changeLabel && (
-                <span
-                  className={cn(
-                    "inline-flex items-center gap-0.5 text-xs font-medium",
-                    positive ? "text-brand-sage" : "text-destructive"
-                  )}
-                >
-                  {positive ? (
-                    <TrendingUp className="h-3 w-3" />
-                  ) : (
-                    <TrendingDown className="h-3 w-3" />
-                  )}
-                  {changeLabel}
-                </span>
-              )}
-            </div>
-            <span className="text-sm text-muted-foreground">{item.label}</span>
+            ) : null}
           </div>
         );
       })}

@@ -35,11 +35,12 @@ export function DashboardRecentReels({ reels, topReelId }: DashboardRecentReelsP
           <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
-        {reels.slice(0, 4).map((reel) => (
+      <div className="editorial-grid-featured">
+        {reels.slice(0, 4).map((reel, index) => (
           <ReelCard
             key={reel.id}
             reel={reel}
+            variant={index === 0 ? "featured" : "grid"}
             showCaption
             showBadge={reel.id === topReelId}
           />

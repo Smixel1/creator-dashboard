@@ -11,7 +11,7 @@ export function DashboardHero({ greeting }: DashboardHeroProps) {
   const t = useTranslations();
 
   return (
-    <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 animate-fade-in">
+    <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 animate-enter">
       <div className="space-y-2 min-w-0">
         <h1 className="editorial-heading text-2xl sm:text-3xl font-semibold leading-tight">
           {greeting}

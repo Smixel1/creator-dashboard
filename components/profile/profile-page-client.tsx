@@ -14,14 +14,17 @@ import type { ProfileStats, SessionUser } from "@/types";
 import { useFormatters } from "@/hooks/use-formatters";
 import { AvatarUpload } from "@/components/profile/avatar-upload";
 import { InlineStatsRow } from "@/components/shared/inline-stats-row";
+import { ReelCard } from "@/components/reels/reel-card";
 import { SettingsRow } from "@/components/settings/settings-ui";
+import type { ReelWithEngagement } from "@/types";
 
 interface ProfilePageClientProps {
   user: SessionUser;
   stats: ProfileStats;
+  recentReels: ReelWithEngagement[];
 }
 
-export function ProfilePageClient({ user, stats }: ProfilePageClientProps) {
+export function ProfilePageClient({ user, stats, recentReels }: ProfilePageClientProps) {
   const t = useTranslations();
   const { formatDate, formatNumber } = useFormatters();
   const { profileSchema } = useValidationSchemas();
@@ -81,19 +84,29 @@ export function ProfilePageClient({ user, stats }: ProfilePageClientProps) {
 
   return (
     <div className="content-canvas stack-section pb-4">
-      <header className="pb-4 border-b border-border/25">
+      <header className="pb-4 border-b border-border/25 animate-enter">
         <p className="section-eyebrow mb-1">{t("profile.authorLabel")}</p>
         <h1 className="editorial-heading text-2xl sm:text-3xl font-semibold">
           {t("profile.title")}
         </h1>
+        <p className="text-sm text-muted-foreground mt-2 max-w-xl">
+          {t("profile.subtitle")}
+        </p>
       </header>
 
-      <section className="open-section pb-6 border-b border-border/25 flex flex-col sm:flex-row gap-6 sm:gap-10">
+      <section className="creator-panel flex flex-col items-center sm:flex-row gap-6 sm:gap-10 animate-enter-delay-1 text-center sm:text-left">
         <AvatarUpload name={user.name} avatarUrl={user.avatarUrl} />
         <div className="flex-1 space-y-3 min-w-0">
           <div>
-            <h2 className="text-lg font-semibold">{user.name}</h2>
-            <p className="text-sm text-muted-foreground">{user.email}</p>
+            <h2 className="editorial-heading text-2xl sm:text-3xl font-semibold">
+              {user.name}
+            </h2>
+            {user.instagramUsername && (
+              <p className="text-sm text-muted-foreground mt-1">
+                @{user.instagramUsername}
+              </p>
+            )}
+            <p className="text-sm text-muted-foreground mt-1">{user.email}</p>
           </div>
           <p className="text-xs text-muted-foreground">
             {t("profile.memberSince", { date: formatDate(user.createdAt) })}
@@ -110,7 +123,6 @@ export function ProfilePageClient({ user, stats }: ProfilePageClientProps) {
             {
               label: t("common.views"),
               value: formatNumber(stats.totalViews),
-              highlight: true,
             },
             {
               label: t("common.averageViews"),
@@ -119,6 +131,22 @@ export function ProfilePageClient({ user, stats }: ProfilePageClientProps) {
           ]}
         />
       </section>
+
+      {recentReels.length > 0 && (
+        <section className="open-section pt-6 border-t border-border/25">
+          <div className="mb-4">
+            <p className="section-eyebrow mb-1">{t("profile.recentContent")}</p>
+            <p className="text-sm text-muted-foreground">
+              {t("profile.recentContentDesc")}
+            </p>
+          </div>
+          <div className="editorial-grid">
+            {recentReels.map((reel) => (
+              <ReelCard key={reel.id} reel={reel} showCaption />
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="open-section pt-6 border-t border-border/25 max-w-lg space-y-4">
         <h2 className="section-title">{t("profile.profileData")}</h2>

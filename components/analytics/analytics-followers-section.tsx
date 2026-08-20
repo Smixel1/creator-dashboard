@@ -47,31 +47,31 @@ export function AnalyticsFollowersSection({
         )}
       >
         <div className="space-y-1">
-          <p className="metric-name">{t("analytics.currentFollowers")}</p>
-          <p className="editorial-heading text-3xl sm:text-4xl font-semibold tabular-nums text-brand-rose leading-none">
+          <p className="metric-label mb-2">{t("analytics.currentFollowers")}</p>
+          <p className="metric-value-sm metric-value-views">
             {metrics.hasData !== false
               ? formatNumber(metrics.current)
               : t("analytics.insufficientData")}
           </p>
         </div>
         <div className="space-y-1">
-          <p className="metric-name">{t("analytics.previousFollowers")}</p>
-          <p className="text-2xl font-semibold tabular-nums leading-none">
+          <p className="metric-label mb-2">{t("analytics.previousFollowers")}</p>
+          <p className="metric-value-sm">
             {hasHistoricalData && metrics.hasHistoricalData !== false
               ? formatNumber(metrics.previous)
               : t("analytics.insufficientData")}
           </p>
         </div>
         <div className="space-y-1">
-          <p className="metric-name">{t("analytics.followersGrowth")}</p>
+          <p className="metric-label mb-2">{t("analytics.followersGrowth")}</p>
           <p
             className={cn(
-              "text-2xl font-semibold tabular-nums leading-none",
+              "metric-value-sm",
               hasHistoricalData && metrics.hasHistoricalData !== false
                 ? positive
-                  ? "text-brand-sage"
+                  ? "metric-value-engagement"
                   : "text-destructive"
-                : "text-muted-foreground"
+                : "text-muted-foreground",
             )}
           >
             {hasHistoricalData && metrics.hasHistoricalData !== false ? (
@@ -85,7 +85,9 @@ export function AnalyticsFollowersSection({
           </p>
         </div>
         <div className="space-y-1">
-          <p className="metric-name">{t("analytics.followersGrowthPercent")}</p>
+          <p className="metric-label mb-2">
+            {t("analytics.followersGrowthPercent")}
+          </p>
           {changeLabel && (
             <div
               className={cn(

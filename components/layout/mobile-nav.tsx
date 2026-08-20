@@ -46,7 +46,7 @@ function MobileNavLink({
       className={cn(
         "relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] transition-colors duration-200",
         active
-          ? "bg-muted/50 text-foreground font-semibold"
+          ? "nav-active-pill"
           : "font-medium text-muted-foreground hover:bg-secondary/70 hover:text-foreground"
       )}
     >

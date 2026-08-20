@@ -1,11 +1,32 @@
+import Image from "next/image";
 import { Film } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+const OPTIMIZED_HOSTS = [
+  "images.unsplash.com",
+  "cdninstagram.com",
+  "fbcdn.net",
+  "public.blob.vercel-storage.com",
+];
+
+function canOptimizeRemoteImage(src: string): boolean {
+  try {
+    const { hostname } = new URL(src);
+    return OPTIMIZED_HOSTS.some(
+      (host) => hostname === host || hostname.endsWith(`.${host}`)
+    );
+  } catch {
+    return false;
+  }
+}
 
 interface ReelCoverImageProps {
   src: string | null;
   alt: string;
   className?: string;
   placeholderClassName?: string;
+  priority?: boolean;
+  sizes?: string;
 }
 
 export function ReelCoverImage({
@@ -13,6 +34,8 @@ export function ReelCoverImage({
   alt,
   className,
   placeholderClassName,
+  priority = false,
+  sizes = "(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw",
 }: ReelCoverImageProps) {
   if (!src?.trim()) {
     return (
@@ -28,8 +51,27 @@ export function ReelCoverImage({
     );
   }
 
+  if (canOptimizeRemoteImage(src)) {
+    return (
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        sizes={sizes}
+        priority={priority}
+        className={cn("object-cover", className)}
+      />
+    );
+  }
+
   return (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={src} alt={alt} className={className} />
+    <img
+      src={src}
+      alt={alt}
+      loading={priority ? "eager" : "lazy"}
+      decoding="async"
+      className={className}
+    />
   );
 }

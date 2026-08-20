@@ -347,7 +347,10 @@ export function buildDashboardStats(
 function aggregateWeeklyPoints(
   points: ChartDataPoint[]
 ): ChartDataPoint[] {
-  const weekly = new Map<string, { views: number; isoDate: string }>();
+  const weekly = new Map<
+    string,
+    { views: number; likes: number; comments: number; isoDate: string }
+  >();
 
   for (const point of points) {
     const iso = point.isoDate ?? point.date;
@@ -358,17 +361,29 @@ function aggregateWeeklyPoints(
     const existing = weekly.get(key);
     weekly.set(key, {
       views: (existing?.views ?? 0) + point.views,
+      likes: (existing?.likes ?? 0) + (point.likes ?? 0),
+      comments: (existing?.comments ?? 0) + (point.comments ?? 0),
       isoDate: key,
     });
   }
 
   return Array.from(weekly.entries())
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([isoDate, { views }]) => ({
+    .map(([isoDate, { views, likes, comments }]) => ({
       isoDate,
       date: format(new Date(isoDate), "MMM d"),
       views,
+      likes,
+      comments,
+      engagement:
+        views > 0
+          ? calcEngagementRate(views, likes, comments)
+          : undefined,
     }));
+}
+
+function buildEngagementRate(views: number, likes: number, comments: number) {
+  return views > 0 ? calcEngagementRate(views, likes, comments) : undefined;
 }
 
 export function computeViewsOverTime(
@@ -378,7 +393,22 @@ export function computeViewsOverTime(
   const now = new Date();
   const periodStart = getPeriodStart(period);
   const rangeStart = periodStart ?? new Date(0);
-  const dailyDeltas = new Map<string, number>();
+  const dailyDeltas = new Map<
+    string,
+    { views: number; likes: number; comments: number }
+  >();
+
+  function addDailyDelta(
+    key: string,
+    delta: { views?: number; likes?: number; comments?: number }
+  ) {
+    const existing = dailyDeltas.get(key) ?? { views: 0, likes: 0, comments: 0 };
+    dailyDeltas.set(key, {
+      views: existing.views + (delta.views ?? 0),
+      likes: existing.likes + (delta.likes ?? 0),
+      comments: existing.comments + (delta.comments ?? 0),
+    });
+  }
 
   for (const reel of reels) {
     const statsInRange = reel.stats.filter(
@@ -388,39 +418,77 @@ export function computeViewsOverTime(
     const baselineStat = findLatestStatAtOrBefore(reel.stats, rangeStart);
     let prevViews =
       baselineStat?.views != null ? baselineStat.views : null;
+    let prevLikes =
+      baselineStat?.likes != null ? baselineStat.likes : null;
+    let prevComments =
+      baselineStat?.comments != null ? baselineStat.comments : null;
 
     const sorted = [...statsInRange].sort(
       (a, b) => a.recordedAt.getTime() - b.recordedAt.getTime()
     );
 
     for (const stat of sorted) {
-      if (stat.views == null) continue;
-
-      const delta =
-        prevViews != null
-          ? Math.max(0, stat.views - prevViews)
-          : stat.views;
-      prevViews = stat.views;
-      if (delta === 0) continue;
       const key = format(stat.recordedAt, "yyyy-MM-dd");
-      dailyDeltas.set(key, (dailyDeltas.get(key) ?? 0) + delta);
+      const delta: { views?: number; likes?: number; comments?: number } = {};
+
+      if (stat.views != null) {
+        const viewsDelta =
+          prevViews != null
+            ? Math.max(0, stat.views - prevViews)
+            : stat.views;
+        prevViews = stat.views;
+        if (viewsDelta > 0) delta.views = viewsDelta;
+      }
+
+      if (stat.likes != null) {
+        const likesDelta =
+          prevLikes != null
+            ? Math.max(0, stat.likes - prevLikes)
+            : stat.likes;
+        prevLikes = stat.likes;
+        if (likesDelta > 0) delta.likes = likesDelta;
+      }
+
+      if (stat.comments != null) {
+        const commentsDelta =
+          prevComments != null
+            ? Math.max(0, stat.comments - prevComments)
+            : stat.comments;
+        prevComments = stat.comments;
+        if (commentsDelta > 0) delta.comments = commentsDelta;
+      }
+
+      if (delta.views || delta.likes || delta.comments) {
+        addDailyDelta(key, delta);
+      }
     }
 
     if (statsInRange.length === 0 && periodStart) {
       const delta = computeReelMetricDeltas(reel, rangeStart, now);
-      if (delta.views != null && delta.views > 0) {
+      if (
+        (delta.views != null && delta.views > 0) ||
+        (delta.likes != null && delta.likes > 0) ||
+        (delta.comments != null && delta.comments > 0)
+      ) {
         const key = format(reel.publishedAt, "yyyy-MM-dd");
-        dailyDeltas.set(key, (dailyDeltas.get(key) ?? 0) + delta.views);
+        addDailyDelta(key, {
+          views: delta.views ?? 0,
+          likes: delta.likes ?? 0,
+          comments: delta.comments ?? 0,
+        });
       }
     }
   }
 
   let points: ChartDataPoint[] = Array.from(dailyDeltas.entries())
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([isoDate, views]) => ({
+    .map(([isoDate, { views, likes, comments }]) => ({
       isoDate,
       date: format(new Date(isoDate), "MMM d"),
       views,
+      likes,
+      comments,
+      engagement: buildEngagementRate(views, likes, comments),
     }));
 
   if (points.length > 45) {

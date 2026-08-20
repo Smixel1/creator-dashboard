@@ -1,12 +1,14 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { TrendingDown, TrendingUp } from "lucide-react";
+import { Clapperboard, TrendingDown, TrendingUp } from "lucide-react";
+import { EmptyStatePanel } from "@/components/shared/empty-state-panel";
+import { AddReelModal } from "@/components/reels/add-reel-modal";
+import { Button } from "@/components/ui/button";
 import { cnChange } from "@/lib/format";
 import { useFormatters } from "@/hooks/use-formatters";
 import { useTranslations } from "@/components/providers/locale-provider";
 import { ViewsChart } from "@/components/charts/views-chart";
-import { Button } from "@/components/ui/button";
 import {
   AnalyticsPeriodTabs,
   usePeriodLabel,
@@ -16,6 +18,9 @@ import {
   AnalyticsMetricsGrid,
 } from "@/components/analytics/analytics-metrics-grid";
 import { AnalyticsTopReels } from "@/components/analytics/analytics-top-reels";
+import { AnalyticsInsight } from "@/components/analytics/analytics-insight";
+import { AnalyticsSourceBreakdown } from "@/components/analytics/analytics-source-breakdown";
+import { ErrorPanel } from "@/components/shared/error-panel";
 import { cn } from "@/lib/utils";
 import type { AnalyticsOverview, AnalyticsPeriod } from "@/types";
 
@@ -40,6 +45,7 @@ export function AnalyticsPageContent({
     stats,
     viewsOverTime,
     topPerforming,
+    contentSource,
   } = analytics;
   const viewsChange = stats.totalViewsChange;
   const hasViewsChange = viewsChange !== undefined;
@@ -101,26 +107,33 @@ export function AnalyticsPageContent({
       </header>
 
       {error && (
-        <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <p className="text-sm text-destructive">{error}</p>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => loadPeriod(period)}
-          >
-            {t("analytics.retryLoad")}
-          </Button>
-        </div>
+        <ErrorPanel
+          title={error}
+          action={
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => loadPeriod(period)}
+            >
+              {t("analytics.retryLoad")}
+            </Button>
+          }
+        />
       )}
 
       {!hasAnyReels && !loading ? (
-        <div className="surface-panel p-8 sm:p-12 text-center">
-          <h2 className="text-base font-semibold">{t("analytics.noDataTitle")}</h2>
-          <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto">
-            {t("analytics.noDataDesc")}
-          </p>
-        </div>
+        <EmptyStatePanel
+          icon={<Clapperboard className="h-6 w-6 text-brand-rose" />}
+          eyebrow={t("reels.onboardingEyebrow")}
+          title={t("analytics.noDataTitle")}
+          description={t("analytics.noDataDesc")}
+          action={
+            <AddReelModal
+              trigger={<Button>{t("common.addReels")}</Button>}
+            />
+          }
+        />
       ) : (
         <div className={cn("stack-section relative", loading && "pointer-events-none")}>
           <section className="open-section pb-6 border-b border-border/25">
@@ -130,7 +143,7 @@ export function AnalyticsPageContent({
               {loading ? (
                 <div className="h-12 w-40 animate-pulse rounded-lg bg-muted/50" />
               ) : (
-                <p className="editorial-heading text-4xl sm:text-5xl font-semibold tabular-nums text-brand-rose leading-none">
+                <p className="metric-value metric-value-views">
                   {formatNumber(stats.totalViews)}
                 </p>
               )}
@@ -160,13 +173,13 @@ export function AnalyticsPageContent({
             </div>
 
             <div className={cn(loading && "opacity-60")}>
-              <AnalyticsMetricsGrid stats={stats} periodLabel={periodLabel} />
+              <AnalyticsMetricsGrid stats={stats} />
             </div>
             </div>
           </section>
 
           <div className={cn("stack-section space-y-6", loading && "opacity-50")}>
-            <AnalyticsAveragesGrid stats={stats} periodLabel={periodLabel} />
+            <AnalyticsAveragesGrid stats={stats} />
 
             <section className="open-section border-t border-border/25 pt-6">
               <div className="mb-4">
@@ -188,6 +201,38 @@ export function AnalyticsPageContent({
                 />
               )}
             </section>
+
+            <section className="open-section border-t border-border/25 pt-6">
+              <div className="mb-4">
+                <h3 className="section-title">{t("analytics.engagementChart")}</h3>
+              </div>
+              {loading ? (
+                <div className="animate-pulse rounded-xl bg-muted/40 h-[220px]" />
+              ) : viewsOverTime.length === 0 ? (
+                <div className="flex items-center justify-center h-[220px] text-sm text-muted-foreground text-center px-4">
+                  {t("metrics.noDataForPeriod")}
+                </div>
+              ) : (
+                <ViewsChart
+                  data={viewsOverTime}
+                  dataKey="engagement"
+                  colorVar="--chart-2"
+                  height={220}
+                  gradientId="analyticsEngagementGradient"
+                />
+              )}
+            </section>
+
+            <AnalyticsSourceBreakdown
+              contentSource={contentSource}
+              totalReels={stats.totalReels}
+            />
+
+            <AnalyticsInsight
+              stats={stats}
+              topReel={topPerforming[0]}
+              periodLabel={periodLabel}
+            />
 
             <AnalyticsTopReels reels={topPerforming} />
           </div>

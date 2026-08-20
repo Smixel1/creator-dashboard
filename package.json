@@ -11,7 +11,7 @@
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
-    "test": "tsx --test lib/apify/reel-import.test.ts lib/apify/apify-http.test.ts lib/avatar/avatar.test.ts lib/avatar/storage-blob.test.ts lib/i18n/auth-ui.test.ts",
+    "test": "tsx --test lib/apify/reel-import.test.ts lib/apify/apify-http.test.ts lib/avatar/avatar.test.ts lib/avatar/storage-blob.test.ts lib/seo/site.test.ts lib/i18n/auth-ui.test.ts",
     "postinstall": "prisma generate"
   },
   "prisma": {

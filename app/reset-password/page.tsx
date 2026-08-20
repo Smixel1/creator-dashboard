@@ -1,4 +1,5 @@
 import { AuthPageShell } from "@/components/login/auth-page-shell";
+import { AuthFormCard } from "@/components/login/auth-form-card";
 import { ResetPasswordForm } from "@/components/login/reset-password-form";
 
 interface ResetPasswordPageProps {
@@ -13,9 +14,9 @@ export default async function ResetPasswordPage({
 
   return (
     <AuthPageShell>
-      <div className="rounded-2xl bg-card p-6 sm:p-8 border border-border/25">
+      <AuthFormCard>
         <ResetPasswordForm token={token} />
-      </div>
+      </AuthFormCard>
     </AuthPageShell>
   );
 }

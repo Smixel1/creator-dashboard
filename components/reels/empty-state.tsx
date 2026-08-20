@@ -2,6 +2,8 @@
 
 import { Clapperboard, SearchX } from "lucide-react";
 import { AddReelModal } from "@/components/reels/add-reel-modal";
+import { Button } from "@/components/ui/button";
+import { EmptyStatePanel } from "@/components/shared/empty-state-panel";
 import { useTranslations } from "@/components/providers/locale-provider";
 
 export function EmptyReelsState({
@@ -12,26 +14,18 @@ export function EmptyReelsState({
   const t = useTranslations();
 
   return (
-    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border/40 py-16 px-6 text-center">
-      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-muted mb-4">
-        <Clapperboard className="h-6 w-6 text-brand-rose" />
-      </div>
-      <p className="section-eyebrow mb-2">{t("reels.onboardingEyebrow")}</p>
-      <h3 className="text-base font-semibold">{t("reels.onboardingTitle")}</h3>
-      <p className="text-sm text-muted-foreground mt-2 max-w-sm leading-relaxed">
-        {t("reels.onboardingDesc")}
-      </p>
-      <div className="mt-6">
+    <EmptyStatePanel
+      icon={<Clapperboard className="h-6 w-6 text-brand-rose" />}
+      eyebrow={t("reels.onboardingEyebrow")}
+      title={t("reels.onboardingTitle")}
+      description={t("reels.onboardingDesc")}
+      action={
         <AddReelModal
           isDemoMode={isDemoMode}
-          trigger={
-            <button className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors">
-              {t("common.addReels")}
-            </button>
-          }
+          trigger={<Button size="lg">{t("common.addReels")}</Button>}
         />
-      </div>
-    </div>
+      }
+    />
   );
 }
 
@@ -39,14 +33,12 @@ export function ReelsNoSearchResults({ query }: { query: string }) {
   const t = useTranslations();
 
   return (
-    <div className="flex flex-col items-center justify-center rounded-xl border border-border/30 bg-muted/20 py-14 px-6 text-center">
-      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted mb-3">
-        <SearchX className="h-5 w-5 text-muted-foreground" />
-      </div>
-      <h3 className="text-sm font-semibold">{t("reels.noResultsTitle")}</h3>
-      <p className="text-sm text-muted-foreground mt-1.5 max-w-sm">
-        {t("reels.noResultsDesc", { query })}
-      </p>
-    </div>
+    <EmptyStatePanel
+      variant="soft"
+      icon={<SearchX className="h-5 w-5 text-muted-foreground" />}
+      title={t("reels.noResultsTitle")}
+      description={t("reels.noResultsDesc", { query })}
+      className="py-12"
+    />
   );
 }

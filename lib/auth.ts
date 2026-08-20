@@ -1,7 +1,8 @@
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { parseLocale, LOCALE_COOKIE } from "@/lib/locale-cookie";
-import type { SessionUser } from "@/types";import {
+import type { SessionUser } from "@/types";
+import {
   AUTH_COOKIE,
   createSessionToken,
   getSessionCookieOptions,
@@ -63,7 +64,8 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     ...user,
     locale,
     createdAt: user.createdAt.toISOString(),
-  };}
+  };
+}
 
 export async function requireSessionUser(): Promise<SessionUser> {
   const user = await getSessionUser();

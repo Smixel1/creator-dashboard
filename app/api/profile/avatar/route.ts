@@ -5,7 +5,7 @@ import {
   assertAllowedClientMime,
   AvatarValidationError,
 } from "@/lib/avatar/validate";
-import { saveUserAvatar } from "@/services/profile/avatar-service";
+import { saveUserAvatar, isAvatarStorageError } from "@/services/profile/avatar-service";
 import type { Translator } from "@/lib/i18n";
 import { getRequestTranslator } from "@/lib/i18n/request";
 
@@ -19,6 +19,13 @@ function mapAvatarError(error: unknown, t: Translator): string {
       default:
         return t("profile.uploadError");
     }
+  }
+
+  if (isAvatarStorageError(error)) {
+    if (error.code === "NOT_CONFIGURED") {
+      return t("profile.uploadNotConfigured");
+    }
+    return t("profile.uploadError");
   }
 
   return t("api.avatarUploadFailed");
@@ -64,8 +71,21 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ avatarUrl });
   } catch (error) {
-    console.error("[profile/avatar]", error);
-    const status = error instanceof AvatarValidationError ? 400 : 500;
+    console.error("[profile/avatar]", {
+      errorType: error instanceof Error ? error.name : typeof error,
+      code:
+        error instanceof AvatarValidationError
+          ? error.code
+          : isAvatarStorageError(error)
+            ? error.code
+            : undefined,
+    });
+    const status =
+      error instanceof AvatarValidationError
+        ? 400
+        : isAvatarStorageError(error) && error.code === "NOT_CONFIGURED"
+          ? 503
+          : 500;
     return NextResponse.json(
       { error: mapAvatarError(error, t) },
       { status }

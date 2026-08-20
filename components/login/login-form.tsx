@@ -28,7 +28,7 @@ export function LoginForm() {
     formState: { errors, isSubmitting },
   } = useForm<LoginInput>({
     resolver,
-    defaultValues: { email: "anna@creator.io", password: "password123" },
+    defaultValues: { email: "", password: "" },
   });
 
   async function onSubmit(data: LoginInput) {

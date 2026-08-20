@@ -11,7 +11,7 @@
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
-    "test": "tsx --test lib/apify/reel-import.test.ts lib/apify/apify-http.test.ts",
+    "test": "tsx --test lib/apify/reel-import.test.ts lib/apify/apify-http.test.ts lib/avatar/avatar.test.ts",
     "postinstall": "prisma generate"
   },
   "prisma": {
@@ -22,6 +22,7 @@
     "@hookform/resolvers": "^5.9.1",
     "@prisma/adapter-pg": "^7.9.1",
     "@prisma/client": "^7.9.1",
+    "@vercel/blob": "^2.8.0",
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

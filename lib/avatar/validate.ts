@@ -2,6 +2,7 @@ import { randomBytes } from "crypto";
 import {
   AVATAR_ALLOWED_MIME_TYPES,
   AVATAR_MAX_BYTES,
+  AVATAR_PUBLIC_PREFIX,
   type AvatarMimeType,
 } from "./constants";
 
@@ -107,8 +108,35 @@ export function isManagedAvatarUrl(url: string | null | undefined): url is strin
   return /^\/uploads\/avatars\/[a-zA-Z0-9._-]+$/.test(url);
 }
 
+export function isVercelBlobAvatarUrl(
+  url: string | null | undefined
+): url is string {
+  if (!url) return false;
+  try {
+    const parsed = new URL(url);
+    return (
+      parsed.protocol === "https:" &&
+      parsed.hostname.endsWith(".public.blob.vercel-storage.com") &&
+      parsed.pathname.startsWith("/avatars/")
+    );
+  } catch {
+    return false;
+  }
+}
+
 export function avatarUrlBelongsToUser(url: string, userId: string): boolean {
-  const filename = url.slice("/uploads/avatars/".length);
   const safeUserId = userId.replace(/[^a-zA-Z0-9_-]/g, "");
-  return filename.startsWith(`${safeUserId}-`);
+
+  if (isManagedAvatarUrl(url)) {
+    const filename = url.slice(AVATAR_PUBLIC_PREFIX.length);
+    return filename.startsWith(`${safeUserId}-`);
+  }
+
+  if (isVercelBlobAvatarUrl(url)) {
+    const pathname = new URL(url).pathname;
+    const filename = pathname.slice("/avatars/".length);
+    return filename.startsWith(`${safeUserId}-`);
+  }
+
+  return false;
 }

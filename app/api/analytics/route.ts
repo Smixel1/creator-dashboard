@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSessionUserId } from "@/lib/auth";
-import { getAnalyticsWithFollowers } from "@/services/analytics/creator-followers";
+import { getAnalyticsOverview } from "@/services/reels/reel-service";
 import { getRequestTranslator } from "@/lib/i18n/request";
 import type { AnalyticsPeriod } from "@/types";
 
@@ -25,7 +25,7 @@ export async function GET(request: Request) {
   const period = parsePeriod(searchParams.get("period"));
 
   try {
-    const analytics = await getAnalyticsWithFollowers(userId, period);
+    const analytics = await getAnalyticsOverview(userId, period);
     return NextResponse.json(analytics);
   } catch (error) {
     console.error("[api/analytics]", error);

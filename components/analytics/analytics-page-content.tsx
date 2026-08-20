@@ -15,7 +15,6 @@ import {
   AnalyticsAveragesGrid,
   AnalyticsMetricsGrid,
 } from "@/components/analytics/analytics-metrics-grid";
-import { AnalyticsFollowersSection } from "@/components/analytics/analytics-followers-section";
 import { AnalyticsTopReels } from "@/components/analytics/analytics-top-reels";
 import { cn } from "@/lib/utils";
 import type { AnalyticsOverview, AnalyticsPeriod } from "@/types";
@@ -41,9 +40,6 @@ export function AnalyticsPageContent({
     stats,
     viewsOverTime,
     topPerforming,
-    followers: followersMetrics,
-    followersOverTime,
-    followersHasHistoricalData,
   } = analytics;
   const viewsChange = stats.totalViewsChange;
   const hasViewsChange = viewsChange !== undefined;
@@ -171,14 +167,6 @@ export function AnalyticsPageContent({
 
           <div className={cn("stack-section space-y-6", loading && "opacity-50")}>
             <AnalyticsAveragesGrid stats={stats} periodLabel={periodLabel} />
-
-            <AnalyticsFollowersSection
-              metrics={followersMetrics}
-              overTime={followersOverTime}
-              periodLabel={periodLabel}
-              loading={loading}
-              hasHistoricalData={followersHasHistoricalData}
-            />
 
             <section className="open-section border-t border-border/25 pt-6">
               <div className="mb-4">

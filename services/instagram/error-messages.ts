@@ -23,6 +23,8 @@ export function getInstagramErrorMessage(
         return t("instagram.errors.missingStatistics");
       case "NOT_CONFIGURED":
         return t("instagram.errors.notConfigured");
+      case "IDENTITY_MISMATCH":
+        return t("instagram.errors.identityMismatch");
       default:
         return t("instagram.errors.generic");
     }

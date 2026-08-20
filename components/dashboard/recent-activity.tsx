@@ -4,6 +4,7 @@ import Link from "next/link";
 import { formatPercent } from "@/lib/format";
 import { useFormatters } from "@/hooks/use-formatters";
 import { useTranslations } from "@/components/providers/locale-provider";
+import { ReelCoverImage } from "@/components/reels/reel-cover-image";
 import { cn } from "@/lib/utils";
 import type { ReelWithEngagement } from "@/types";
 
@@ -34,8 +35,7 @@ export function RecentActivity({ reels }: RecentActivityProps) {
             className="group flex items-center gap-3 sm:gap-4 py-3.5 first:pt-0 last:pb-0 transition-colors hover:bg-muted/10 -mx-1 px-1 rounded-lg"
           >
             <div className="relative h-11 w-8 shrink-0 overflow-hidden rounded-lg bg-muted">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <ReelCoverImage
                 src={reel.coverUrl}
                 alt=""
                 className="h-full w-full object-cover"

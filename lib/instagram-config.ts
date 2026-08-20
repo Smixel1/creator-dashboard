@@ -1,15 +1,24 @@
-export function isApifyConfigured(): boolean {
-  return (
-    process.env.USE_APIFY === "true" && Boolean(process.env.APIFY_API_TOKEN)
-  );
-}
+import {
+  hasApifyToken,
+  isApifyConfigured,
+  isApifyEnabled,
+  isApifyUnavailable,
+} from "@/lib/apify/config";
 
+export {
+  hasApifyToken,
+  isApifyConfigured,
+  isApifyEnabled,
+  isApifyUnavailable,
+};
+
+/** True when URL import / refresh via Apify is unavailable. */
 export function isInstagramDemoMode(): boolean {
-  return !isApifyConfigured();
+  return isApifyUnavailable();
 }
 
-export type InstagramDataSource = "apify" | "mock";
+export type InstagramDataSource = "apify" | "unavailable";
 
 export function getInstagramDataSource(): InstagramDataSource {
-  return isApifyConfigured() ? "apify" : "mock";
+  return isApifyConfigured() ? "apify" : "unavailable";
 }

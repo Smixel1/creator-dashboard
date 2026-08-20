@@ -32,13 +32,11 @@ type SortValue =
 interface ReelsPageClientProps {
   reels: ReelWithEngagement[];
   isDemoMode?: boolean;
-  instagramConnected?: boolean;
 }
 
 export function ReelsPageClient({
   reels,
   isDemoMode = false,
-  instagramConnected = false,
 }: ReelsPageClientProps) {
   const t = useTranslations();
   const [view, setView] = useState<"grid" | "list">("grid");
@@ -63,7 +61,14 @@ export function ReelsPageClient({
 
     if (debouncedSearch) {
       const q = debouncedSearch.toLowerCase();
-      result = result.filter((r) => r.title.toLowerCase().includes(q));
+      result = result.filter((r) => {
+        const caption = r.caption?.toLowerCase() ?? "";
+        const title = r.title.toLowerCase();
+        const username = r.ownerUsername?.toLowerCase() ?? "";
+        return (
+          title.includes(q) || caption.includes(q) || username.includes(q)
+        );
+      });
     }
 
     result.sort((a, b) => {
@@ -105,9 +110,7 @@ export function ReelsPageClient({
         )}
       </div>
       <div className="flex flex-wrap items-center gap-2 shrink-0">
-        {reels.length > 0 && (
-          <SyncReelsButton isDemoMode={isDemoMode} />
-        )}
+        {reels.length > 0 && <SyncReelsButton />}
         <AddReelModal isDemoMode={isDemoMode} />
       </div>
     </header>
@@ -117,10 +120,7 @@ export function ReelsPageClient({
     return (
       <div className="content-canvas stack-section pb-4">
         {header}
-        <EmptyReelsState
-          isDemoMode={isDemoMode}
-          instagramConnected={instagramConnected}
-        />
+        <EmptyReelsState isDemoMode={isDemoMode} />
       </div>
     );
   }

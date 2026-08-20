@@ -8,9 +8,17 @@ import {
   MessageCircle,
 } from "lucide-react";
 import { formatEngagementRate } from "@/lib/format";
+import {
+  formatReelMetric,
+  getReelDisplayCaption,
+  getReelFreshnessLabel,
+  reelHasEngagementData,
+  reelMetricHasData,
+} from "@/lib/reel-display";
 import { useFormatters } from "@/hooks/use-formatters";
 import { useTranslations } from "@/components/providers/locale-provider";
 import { cn } from "@/lib/utils";
+import { ReelCoverImage } from "@/components/reels/reel-cover-image";
 import type { ReelWithEngagement } from "@/types";
 
 interface ReelCardProps {
@@ -33,15 +41,37 @@ export function ReelCard({
   const isFeatured = variant === "featured";
   const isCompact = variant === "compact";
   const useCaption = showCaption && variant !== "compact";
-  const engagementLabel = formatEngagementRate(
-    reel.hasViewsData === false ? 0 : reel.views,
-    reel.engagementRate,
-    t("analytics.insufficientData")
+  const insufficient = t("analytics.insufficientData");
+  const viewsLabel = formatReelMetric(
+    reel.views,
+    reelMetricHasData(reel, "views"),
+    formatNumber,
+    insufficient
   );
-  const viewsLabel =
-    reel.hasViewsData === false
-      ? t("analytics.insufficientData")
-      : formatNumber(reel.views);
+  const likesLabel = formatReelMetric(
+    reel.likes,
+    reelMetricHasData(reel, "likes"),
+    formatNumber,
+    insufficient
+  );
+  const commentsLabel = formatReelMetric(
+    reel.comments,
+    reelMetricHasData(reel, "comments"),
+    formatNumber,
+    insufficient
+  );
+  const engagementLabel = formatEngagementRate(
+    reel.views,
+    reel.engagementRate,
+    insufficient,
+    reelHasEngagementData(reel)
+  );
+  const freshnessLabel = getReelFreshnessLabel(
+    reel,
+    formatDate,
+    t("reels.lastUpdated")
+  );
+  const displayCaption = getReelDisplayCaption(reel);
 
   return (
     <article
@@ -60,10 +90,9 @@ export function ReelCard({
         )}
       >
         <Link href={`/reels/${reel.id}`} className="block h-full">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <ReelCoverImage
             src={reel.coverUrl}
-            alt={reel.title}
+            alt={displayCaption}
             className="h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.04]"
           />
         </Link>
@@ -95,11 +124,11 @@ export function ReelCard({
             </span>
             <span className="inline-flex items-center gap-1">
               <Heart className="h-3.5 w-3.5" />
-              {formatNumber(reel.likes)}
+              {likesLabel}
             </span>
             <span className="inline-flex items-center gap-1">
               <MessageCircle className="h-3.5 w-3.5" />
-              {formatNumber(reel.comments)}
+              {commentsLabel}
             </span>
           </div>
         </div>
@@ -115,12 +144,20 @@ export function ReelCard({
 
       {useCaption && (
         <Link href={`/reels/${reel.id}`} className="block p-3 space-y-2">
+          {reel.ownerUsername && (
+            <p className="text-xs font-medium text-muted-foreground">
+              @{reel.ownerUsername}
+            </p>
+          )}
           <h3 className="text-sm font-medium leading-snug line-clamp-2 group-hover:text-brand-rose transition-colors">
-            {reel.title}
+            {displayCaption}
           </h3>
           <p className="text-xs text-muted-foreground">
             {t("common.published")} · {formatDate(reel.publishedAt)}
           </p>
+          {freshnessLabel && (
+            <p className="text-[11px] text-muted-foreground/80">{freshnessLabel}</p>
+          )}
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
             <span className="inline-flex items-center gap-1 tabular-nums">
               <Eye className="h-3 w-3 shrink-0" />
@@ -128,18 +165,16 @@ export function ReelCard({
             </span>
             <span className="inline-flex items-center gap-1 tabular-nums">
               <Heart className="h-3 w-3 shrink-0" />
-              {formatNumber(reel.likes)}
+              {likesLabel}
             </span>
             <span className="inline-flex items-center gap-1 tabular-nums">
               <MessageCircle className="h-3 w-3 shrink-0" />
-              {formatNumber(reel.comments)}
+              {commentsLabel}
             </span>
             <span
               className={cn(
                 "tabular-nums",
-                reel.hasViewsData !== false &&
-                  reel.views > 0 &&
-                  "text-brand-sage font-medium"
+                reelHasEngagementData(reel) && "text-brand-sage font-medium"
               )}
             >
               {engagementLabel}

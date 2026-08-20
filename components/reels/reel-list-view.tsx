@@ -12,10 +12,17 @@ import {
   Trash2,
 } from "lucide-react";
 import { formatEngagementRate } from "@/lib/format";
+import {
+  formatReelMetric,
+  getReelDisplayCaption,
+  reelHasEngagementData,
+  reelMetricHasData,
+} from "@/lib/reel-display";
 import { useFormatters } from "@/hooks/use-formatters";
 import { useTranslations } from "@/components/providers/locale-provider";
 import { useDeleteReel } from "@/hooks/use-delete-reel";
 import { DeleteReelDialog } from "@/components/reels/delete-reel-dialog";
+import { ReelCoverImage } from "@/components/reels/reel-cover-image";
 import type { ReelWithEngagement } from "@/types";
 import {
   DropdownMenu,
@@ -93,11 +100,14 @@ export function ReelListView({ reels }: ReelListViewProps) {
             <tbody>
               {reels.map((reel) => {
                 const isDeleting = deletingId === reel.id;
+                const insufficient = t("analytics.insufficientData");
                 const engagementLabel = formatEngagementRate(
                   reel.views,
                   reel.engagementRate,
-                  t("analytics.insufficientData")
+                  insufficient,
+                  reelHasEngagementData(reel)
                 );
+                const displayCaption = getReelDisplayCaption(reel);
 
                 return (
                   <tr
@@ -109,15 +119,20 @@ export function ReelListView({ reels }: ReelListViewProps) {
                         href={`/reels/${reel.id}`}
                         className="flex items-center gap-3 group min-w-[180px]"
                       >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
+                        <ReelCoverImage
                           src={reel.coverUrl}
                           alt={reel.title}
                           className="h-12 w-9 rounded-lg object-cover shrink-0"
+                          placeholderClassName="h-12 w-9 rounded-lg shrink-0"
                         />
                         <span className="font-medium line-clamp-2 group-hover:text-brand-rose transition-colors">
-                          {reel.title}
+                          {displayCaption}
                         </span>
+                        {reel.ownerUsername && (
+                          <span className="text-xs text-muted-foreground">
+                            @{reel.ownerUsername}
+                          </span>
+                        )}
                       </Link>
                     </td>
                     <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell whitespace-nowrap">
@@ -126,25 +141,40 @@ export function ReelListView({ reels }: ReelListViewProps) {
                     <td className="px-4 py-3 text-right tabular-nums">
                       <span className="inline-flex items-center gap-1 justify-end">
                         <Eye className="h-3 w-3 text-muted-foreground" />
-                        {formatNumber(reel.views)}
+                        {formatReelMetric(
+                          reel.views,
+                          reelMetricHasData(reel, "views"),
+                          formatNumber,
+                          insufficient
+                        )}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right tabular-nums hidden md:table-cell">
                       <span className="inline-flex items-center gap-1 justify-end">
                         <Heart className="h-3 w-3 text-muted-foreground" />
-                        {formatNumber(reel.likes)}
+                        {formatReelMetric(
+                          reel.likes,
+                          reelMetricHasData(reel, "likes"),
+                          formatNumber,
+                          insufficient
+                        )}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right tabular-nums hidden lg:table-cell">
                       <span className="inline-flex items-center gap-1 justify-end">
                         <MessageCircle className="h-3 w-3 text-muted-foreground" />
-                        {formatNumber(reel.comments)}
+                        {formatReelMetric(
+                          reel.comments,
+                          reelMetricHasData(reel, "comments"),
+                          formatNumber,
+                          insufficient
+                        )}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right hidden md:table-cell">
                       <span
                         className={
-                          reel.views > 0
+                          reelHasEngagementData(reel)
                             ? "text-brand-sage font-medium tabular-nums"
                             : "text-muted-foreground text-xs"
                         }

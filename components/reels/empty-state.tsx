@@ -6,10 +6,8 @@ import { useTranslations } from "@/components/providers/locale-provider";
 
 export function EmptyReelsState({
   isDemoMode = false,
-  instagramConnected = false,
 }: {
   isDemoMode?: boolean;
-  instagramConnected?: boolean;
 }) {
   const t = useTranslations();
 
@@ -18,28 +16,21 @@ export function EmptyReelsState({
       <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-muted mb-4">
         <Clapperboard className="h-6 w-6 text-brand-rose" />
       </div>
-      <h3 className="text-base font-semibold">
-        {instagramConnected
-          ? t("reels.emptyInstagramTitle")
-          : t("reels.emptyTitle")}
-      </h3>
+      <p className="section-eyebrow mb-2">{t("reels.onboardingEyebrow")}</p>
+      <h3 className="text-base font-semibold">{t("reels.onboardingTitle")}</h3>
       <p className="text-sm text-muted-foreground mt-2 max-w-sm leading-relaxed">
-        {instagramConnected
-          ? t("reels.emptyInstagramDesc")
-          : t("reels.emptyDesc")}
+        {t("reels.onboardingDesc")}
       </p>
-      {!instagramConnected && (
-        <div className="mt-6">
-          <AddReelModal
-            isDemoMode={isDemoMode}
-            trigger={
-              <button className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors">
-                {t("common.addReels")}
-              </button>
-            }
-          />
-        </div>
-      )}
+      <div className="mt-6">
+        <AddReelModal
+          isDemoMode={isDemoMode}
+          trigger={
+            <button className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors">
+              {t("common.addReels")}
+            </button>
+          }
+        />
+      </div>
     </div>
   );
 }

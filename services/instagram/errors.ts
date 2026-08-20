@@ -6,6 +6,7 @@ export type InstagramErrorCode =
   | "RATE_LIMIT"
   | "MALFORMED_RESPONSE"
   | "MISSING_STATISTICS"
+  | "IDENTITY_MISMATCH"
   | "NOT_CONFIGURED";
 
 export class InstagramFetchError extends Error {

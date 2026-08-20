@@ -4,10 +4,6 @@ import {
   getInstagramConnectionForUser,
   getOldestFollowerSnapshotBefore,
 } from "@/services/instagram/connection-service";
-import {
-  getMockFollowersMetrics,
-  getMockFollowersOverTime,
-} from "@/lib/mock/creator-followers";
 import type { AnalyticsPeriod, ChartDataPoint, FollowersMetrics } from "@/types";
 
 export type CreatorFollowersSource = "instagram" | "mock";
@@ -150,7 +146,23 @@ async function getInstagramFollowersData(
   };
 }
 
-/** Unified followers data source — Instagram when connected, otherwise explicit mock fallback. */
+function buildNoFollowersData(): CreatorFollowersData {
+  return {
+    metrics: {
+      current: 0,
+      previous: 0,
+      growth: 0,
+      growthPercent: 0,
+      hasHistoricalData: false,
+      hasData: false,
+    },
+    overTime: [],
+    source: "mock",
+    hasHistoricalData: false,
+  };
+}
+
+/** Unified followers data source — Instagram when connected, otherwise no data. */
 export async function getCreatorFollowersData(
   userId: string,
   period: AnalyticsPeriod = "30d"
@@ -160,17 +172,7 @@ export async function getCreatorFollowersData(
     return instagramData;
   }
 
-  return {
-    metrics: {
-      ...getMockFollowersMetrics(period),
-      source: "mock",
-      hasHistoricalData: true,
-      hasData: true,
-    },
-    overTime: getMockFollowersOverTime(period),
-    source: "mock",
-    hasHistoricalData: true,
-  };
+  return buildNoFollowersData();
 }
 
 export async function getAnalyticsWithFollowers(

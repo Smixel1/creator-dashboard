@@ -8,13 +8,9 @@ import { useTranslations } from "@/components/providers/locale-provider";
 
 interface SyncReelsButtonProps {
   disabled?: boolean;
-  isDemoMode?: boolean;
 }
 
-export function SyncReelsButton({
-  disabled,
-  isDemoMode = false,
-}: SyncReelsButtonProps) {
+export function SyncReelsButton({ disabled }: SyncReelsButtonProps) {
   const router = useRouter();
   const t = useTranslations();
   const [isSyncing, setIsSyncing] = useState(false);
@@ -47,7 +43,6 @@ export function SyncReelsButton({
         updated: number;
         failed: number;
         total: number;
-        demoMode?: boolean;
       };
 
       if (data.failed > 0) {
@@ -61,9 +56,7 @@ export function SyncReelsButton({
       } else {
         setMessage({
           type: "success",
-          text: isDemoMode || data.demoMode
-            ? t("reels.syncSuccessDemo", { count: data.updated })
-            : t("reels.syncSuccess", { count: data.updated }),
+          text: t("reels.syncSuccess", { count: data.updated }),
         });
       }
 

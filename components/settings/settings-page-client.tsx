@@ -24,7 +24,6 @@ export function SettingsPageClient({
 }: SettingsPageClientProps) {
   const t = useTranslations();
   const { logout, isLoggingOut } = useLogout();
-  const connected = Boolean(user.instagramUsername);
 
   return (
     <div className="content-canvas max-w-2xl stack-section pb-4">
@@ -34,7 +33,7 @@ export function SettingsPageClient({
           {t("settings.title")}
         </h1>
         <p className="text-sm text-muted-foreground mt-1.5 max-w-lg">
-          {t("settings.subtitle")}
+          {t("settings.subtitleApify")}
         </p>
       </header>
 
@@ -58,20 +57,7 @@ export function SettingsPageClient({
         </div>
       </SettingsSection>
 
-      <SettingsSection title={t("settings.instagram")}>
-        <SettingsRow
-          label={t("settings.connectionStatus")}
-          value={
-            connected ? t("common.connected") : t("common.notConnected")
-          }
-          hint={
-            connected
-              ? user.instagramUsername
-                ? `@${user.instagramUsername}`
-                : undefined
-              : t("settings.setInProfile")
-          }
-        />
+      <SettingsSection title={t("settings.reelsData")}>
         <SettingsRow
           label={t("settings.dataSource")}
           value={

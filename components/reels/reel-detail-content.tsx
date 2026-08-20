@@ -5,19 +5,43 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ExternalLink, Trash2 } from "lucide-react";
 import { formatEngagementRate } from "@/lib/format";
+import {
+  formatReelMetric,
+  getReelDisplayCaption,
+  getReelFreshnessLabel,
+  reelHasEngagementData,
+  reelMetricHasData,
+} from "@/lib/reel-display";
 import { useFormatters } from "@/hooks/use-formatters";
 import { useTranslations } from "@/components/providers/locale-provider";
 import { useDeleteReel } from "@/hooks/use-delete-reel";
 import { ViewsChart } from "@/components/charts/views-chart";
 import { ReelCard } from "@/components/reels/reel-card";
 import { DeleteReelDialog } from "@/components/reels/delete-reel-dialog";
+import { RefreshReelButton } from "@/components/reels/refresh-reel-button";
+import { ReelCoverImage } from "@/components/reels/reel-cover-image";
 import { SectionHeader } from "@/components/shared/section-header";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import type { ReelDetail, ReelWithEngagement } from "@/types";
 
 interface ReelDetailContentProps {
   reel: ReelDetail;
   related: ReelWithEngagement[];
+}
+
+function sourceLabel(
+  source: ReelDetail["source"],
+  t: ReturnType<typeof useTranslations>
+): string {
+  switch (source) {
+    case "apify":
+      return t("reels.sourceApify");
+    case "instagram":
+      return t("reels.sourceInstagram");
+    default:
+      return t("reels.sourceImported");
+  }
 }
 
 export function ReelDetailContent({ reel, related }: ReelDetailContentProps) {
@@ -26,11 +50,18 @@ export function ReelDetailContent({ reel, related }: ReelDetailContentProps) {
   const { formatDate, formatNumber } = useFormatters();
   const { deleteReel, deletingId, error, clearError } = useDeleteReel();
   const [deleteOpen, setDeleteOpen] = useState(false);
-
+  const insufficient = t("analytics.insufficientData");
+  const displayCaption = getReelDisplayCaption(reel);
+  const freshnessLabel = getReelFreshnessLabel(
+    reel,
+    formatDate,
+    t("reels.lastUpdated")
+  );
   const engagementLabel = formatEngagementRate(
     reel.views,
     reel.engagementRate,
-    t("analytics.insufficientData")
+    insufficient,
+    reelHasEngagementData(reel)
   );
   const hasStats = reel.stats.length > 0;
 
@@ -71,49 +102,90 @@ export function ReelDetailContent({ reel, related }: ReelDetailContentProps) {
       <div className="grid lg:grid-cols-12 gap-8 lg:gap-10">
         <div className="lg:col-span-5">
           <div className="rounded-2xl overflow-hidden bg-muted/30 border border-border/30 max-w-md mx-auto lg:mx-0">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <ReelCoverImage
               src={reel.coverUrl}
-              alt={reel.title}
+              alt={displayCaption}
               className="w-full aspect-[3/4] object-cover"
+              placeholderClassName="w-full aspect-[3/4]"
             />
           </div>
         </div>
 
         <div className="lg:col-span-7 space-y-6">
-          <header className="space-y-2 pb-4 border-b border-border/25">
-            <span className="status-badge bg-muted text-muted-foreground">
-              {t("reels.contentOverview")}
-            </span>
-            <h1 className="editorial-heading text-2xl sm:text-3xl font-semibold leading-tight">
-              {reel.title}
+          <header className="space-y-3 pb-4 border-b border-border/25">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="status-badge bg-muted text-muted-foreground">
+                {sourceLabel(reel.source, t)}
+              </span>
+              {freshnessLabel && (
+                <span className="text-xs text-muted-foreground">
+                  {freshnessLabel}
+                </span>
+              )}
+            </div>
+            <h1 className="editorial-heading text-2xl sm:text-3xl font-semibold leading-tight line-clamp-3">
+              {displayCaption}
             </h1>
+            {reel.ownerUsername && (
+              <p className="text-sm font-medium text-muted-foreground">
+                @{reel.ownerUsername}
+              </p>
+            )}
             <p className="text-sm text-muted-foreground">
               {t("common.published")} · {formatDate(reel.publishedAt)}
             </p>
+            <a
+              href={reel.instagramUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-brand-rose transition-colors break-all"
+            >
+              <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+              {reel.instagramUrl}
+            </a>
           </header>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <MetricBlock
               label={t("common.views")}
-              value={formatNumber(reel.views)}
+              value={formatReelMetric(
+                reel.views,
+                reelMetricHasData(reel, "views"),
+                formatNumber,
+                insufficient
+              )}
+              muted={!reelMetricHasData(reel, "views")}
             />
             <MetricBlock
               label={t("common.likes")}
-              value={formatNumber(reel.likes)}
+              value={formatReelMetric(
+                reel.likes,
+                reelMetricHasData(reel, "likes"),
+                formatNumber,
+                insufficient
+              )}
+              muted={!reelMetricHasData(reel, "likes")}
             />
             <MetricBlock
               label={t("common.comments")}
-              value={formatNumber(reel.comments)}
+              value={formatReelMetric(
+                reel.comments,
+                reelMetricHasData(reel, "comments"),
+                formatNumber,
+                insufficient
+              )}
+              muted={!reelMetricHasData(reel, "comments")}
             />
             <MetricBlock
               label={t("common.engagement")}
               value={engagementLabel}
-              highlight={reel.views > 0}
+              highlight={reelHasEngagementData(reel)}
+              muted={!reelHasEngagementData(reel)}
             />
           </div>
 
           <div className="flex flex-wrap gap-3">
+            <RefreshReelButton reelId={reel.id} disabled={deletingId !== null} />
             <a
               href={reel.instagramUrl}
               target="_blank"
@@ -170,7 +242,7 @@ export function ReelDetailContent({ reel, related }: ReelDetailContentProps) {
         ) : (
           <div className="rounded-xl border border-dashed border-border/40 bg-muted/20 py-12 px-6 text-center">
             <p className="text-sm text-muted-foreground">
-              {t("reels.statsEmpty")}
+              {t("reels.statsEmptyRefresh")}
             </p>
           </div>
         )}
@@ -192,7 +264,7 @@ export function ReelDetailContent({ reel, related }: ReelDetailContentProps) {
 
       <DeleteReelDialog
         open={deleteOpen}
-        title={reel.title}
+        title={displayCaption}
         loading={deletingId !== null}
         onConfirm={() => void handleDelete()}
         onCancel={() => {
@@ -210,19 +282,21 @@ function MetricBlock({
   label,
   value,
   highlight,
+  muted,
 }: {
   label: string;
   value: string;
   highlight?: boolean;
+  muted?: boolean;
 }) {
   return (
     <div>
       <p
-        className={
-          highlight
-            ? "text-xl sm:text-2xl font-semibold tabular-nums text-brand-sage"
-            : "text-xl sm:text-2xl font-semibold tabular-nums"
-        }
+        className={cn(
+          "text-xl sm:text-2xl font-semibold tabular-nums leading-none",
+          highlight && "text-brand-sage",
+          muted && "text-muted-foreground text-lg sm:text-xl font-medium"
+        )}
       >
         {value}
       </p>

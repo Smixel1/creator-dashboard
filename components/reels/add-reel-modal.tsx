@@ -23,6 +23,7 @@ import type { ReelUrlInput } from "@/lib/validations";
 interface AddReelModalProps {
   trigger?: React.ReactElement;
   onSuccess?: () => void;
+  /** When true, Apify import is unavailable (missing token or USE_APIFY=false). */
   isDemoMode?: boolean;
 }
 
@@ -93,12 +94,11 @@ export function AddReelModal({
           <div className="rounded-lg border border-amber-200/60 bg-amber-50/80 dark:bg-amber-950/20 dark:border-amber-900/40 px-3 py-2.5 text-sm text-amber-900 dark:text-amber-200 flex gap-2">
             <Info className="h-4 w-4 shrink-0 mt-0.5" />
             <div className="space-y-1">
-              <p>{t("reels.demoModeNotice")}</p>
-              <p className="text-xs opacity-80">{t("reels.demoModeHint")}</p>
+              <p>{t("reels.apifyUnavailableNotice")}</p>
+              <p className="text-xs opacity-80">{t("reels.apifyUnavailableHint")}</p>
             </div>
           </div>
         )}
-
         <form
           onSubmit={(event) => {
             event.preventDefault();

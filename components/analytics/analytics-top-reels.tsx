@@ -2,9 +2,16 @@
 
 import Link from "next/link";
 import { ArrowUpRight, Eye, Heart, MessageCircle } from "lucide-react";
-import { formatPercent } from "@/lib/format";
+import { formatEngagementRate } from "@/lib/format";
+import {
+  formatReelMetric,
+  getReelDisplayCaption,
+  reelHasEngagementData,
+  reelMetricHasData,
+} from "@/lib/reel-display";
 import { useFormatters } from "@/hooks/use-formatters";
 import { useTranslations } from "@/components/providers/locale-provider";
+import { ReelCoverImage } from "@/components/reels/reel-cover-image";
 import type { ReelWithEngagement } from "@/types";
 
 interface AnalyticsTopReelsProps {
@@ -14,6 +21,7 @@ interface AnalyticsTopReelsProps {
 export function AnalyticsTopReels({ reels }: AnalyticsTopReelsProps) {
   const t = useTranslations();
   const { formatNumber } = useFormatters();
+  const insufficient = t("analytics.insufficientData");
 
   if (reels.length === 0) return null;
 
@@ -37,34 +45,51 @@ export function AnalyticsTopReels({ reels }: AnalyticsTopReelsProps) {
               {index + 1}
             </span>
             <div className="relative h-14 w-10 shrink-0 overflow-hidden rounded-lg bg-muted">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <ReelCoverImage
                 src={reel.coverUrl}
-                alt={reel.title}
+                alt={getReelDisplayCaption(reel)}
                 className="h-full w-full object-cover"
               />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium line-clamp-1 group-hover:text-brand-rose transition-colors">
-                {reel.title}
+                {getReelDisplayCaption(reel)}
               </p>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1 text-xs text-muted-foreground">
                 <span className="inline-flex items-center gap-1">
                   <Eye className="h-3 w-3" />
-                  {formatNumber(reel.views)}
+                  {formatReelMetric(
+                    reel.views,
+                    reelMetricHasData(reel, "views"),
+                    formatNumber,
+                    insufficient
+                  )}
                 </span>
                 <span className="inline-flex items-center gap-1">
                   <Heart className="h-3 w-3" />
-                  {formatNumber(reel.likes)}
+                  {formatReelMetric(
+                    reel.likes,
+                    reelMetricHasData(reel, "likes"),
+                    formatNumber,
+                    insufficient
+                  )}
                 </span>
                 <span className="inline-flex items-center gap-1">
                   <MessageCircle className="h-3 w-3" />
-                  {formatNumber(reel.comments)}
+                  {formatReelMetric(
+                    reel.comments,
+                    reelMetricHasData(reel, "comments"),
+                    formatNumber,
+                    insufficient
+                  )}
                 </span>
                 <span className="font-medium text-brand-sage">
-                  {reel.views > 0
-                    ? formatPercent(reel.engagementRate)
-                    : t("analytics.insufficientData")}
+                  {formatEngagementRate(
+                    reel.views,
+                    reel.engagementRate,
+                    insufficient,
+                    reelHasEngagementData(reel)
+                  )}
                 </span>
               </div>
             </div>

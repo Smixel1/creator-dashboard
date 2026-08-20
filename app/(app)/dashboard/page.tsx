@@ -1,6 +1,6 @@
 import { getSessionUser } from "@/lib/auth";
-import { getAnalyticsWithFollowers } from "@/services/analytics/creator-followers";
-import { getInstagramConnectionPublic } from "@/services/instagram/connection-service";
+import { isInstagramDemoMode } from "@/lib/instagram-config";
+import { getAnalyticsOverview } from "@/services/reels/reel-service";
 import { getGreeting } from "@/lib/format";
 import { getServerTranslator } from "@/lib/i18n/server";
 import { DashboardHero } from "@/components/dashboard/dashboard-hero";
@@ -15,21 +15,17 @@ export default async function DashboardPage() {
   if (!user) return null;
 
   const { t } = await getServerTranslator();
-  const [analytics, instagram] = await Promise.all([
-    getAnalyticsWithFollowers(user.id, "30d"),
-    getInstagramConnectionPublic(user.id),
-  ]);
-  const { stats, topPerforming, recentReels, followers } = analytics;
-  const instagramConnected = instagram.status === "connected";
+  const analytics = await getAnalyticsOverview(user.id, "30d");
+  const { stats, topPerforming, recentReels } = analytics;
 
   return (
     <div className="content-canvas stack-section-lg pb-4">
       <DashboardHero greeting={getGreeting(user.name, t)} />
 
-      <CreatorSnapshot user={user} stats={stats} followers={followers} />
+      <CreatorSnapshot user={user} stats={stats} />
 
       {stats.totalReels === 0 ? (
-        <EmptyReelsState instagramConnected={instagramConnected} />
+        <EmptyReelsState isDemoMode={isInstagramDemoMode()} />
       ) : (
         <>
           <DashboardRecentReels

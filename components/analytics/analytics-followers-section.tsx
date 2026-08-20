@@ -59,7 +59,7 @@ export function AnalyticsFollowersSection({
           <p className="text-2xl font-semibold tabular-nums leading-none">
             {hasHistoricalData && metrics.hasHistoricalData !== false
               ? formatNumber(metrics.previous)
-              : t("instagram.historyPending")}
+              : t("analytics.insufficientData")}
           </p>
         </div>
         <div className="space-y-1">
@@ -80,7 +80,7 @@ export function AnalyticsFollowersSection({
                 {formatNumber(metrics.growth)}
               </>
             ) : (
-              t("instagram.historyPending")
+              t("analytics.insufficientData")
             )}
           </p>
         </div>

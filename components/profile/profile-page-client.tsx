@@ -11,25 +11,17 @@ import { useTranslations } from "@/components/providers/locale-provider";
 import { useValidationSchemas } from "@/hooks/use-validation-schemas";
 import type { ProfileInput } from "@/lib/validations";
 import type { ProfileStats, SessionUser } from "@/types";
-import type { InstagramConnectionPublic } from "@/types/instagram";
 import { useFormatters } from "@/hooks/use-formatters";
 import { AvatarUpload } from "@/components/profile/avatar-upload";
-import { InstagramConnectionPanel } from "@/components/profile/instagram-connection";
 import { InlineStatsRow } from "@/components/shared/inline-stats-row";
 import { SettingsRow } from "@/components/settings/settings-ui";
-import { cn } from "@/lib/utils";
 
 interface ProfilePageClientProps {
   user: SessionUser;
   stats: ProfileStats;
-  instagram: InstagramConnectionPublic;
 }
 
-export function ProfilePageClient({
-  user,
-  stats,
-  instagram,
-}: ProfilePageClientProps) {
+export function ProfilePageClient({ user, stats }: ProfilePageClientProps) {
   const t = useTranslations();
   const { formatDate, formatNumber } = useFormatters();
   const { profileSchema } = useValidationSchemas();
@@ -43,9 +35,6 @@ export function ProfilePageClient({
     stats.totalReels > 0
       ? Math.round(stats.totalViews / stats.totalReels)
       : 0;
-
-  const connected =
-    instagram.status === "connected" || Boolean(user.instagramUsername);
 
   const {
     register,
@@ -106,23 +95,6 @@ export function ProfilePageClient({
             <h2 className="text-lg font-semibold">{user.name}</h2>
             <p className="text-sm text-muted-foreground">{user.email}</p>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span
-              className={cn(
-                "h-1.5 w-1.5 rounded-full",
-                connected ? "bg-brand-sage" : "bg-muted-foreground/40"
-              )}
-            />
-            <span className="text-xs text-muted-foreground">
-              {instagram.status === "connected"
-                ? t("profile.instagramConnected")
-                : instagram.status === "expired"
-                  ? t("instagram.connectionExpired")
-                  : connected
-                    ? t("profile.instagramConnected")
-                    : t("profile.instagramNotSet")}
-            </span>
-          </div>
           <p className="text-xs text-muted-foreground">
             {t("profile.memberSince", { date: formatDate(user.createdAt) })}
           </p>
@@ -154,12 +126,13 @@ export function ProfilePageClient({
           <div className="space-y-3">
             <SettingsRow label={t("common.name")} value={user.name} />
             <SettingsRow
-              label={t("common.instagram")}
+              label={t("profile.publicUsernameLabel")}
               value={
                 user.instagramUsername
                   ? `@${user.instagramUsername}`
                   : t("common.notSpecified")
               }
+              hint={t("profile.publicUsernameHint")}
             />
             <div className="flex gap-2 pt-2">
               <Button
@@ -188,7 +161,7 @@ export function ProfilePageClient({
             </div>
             <div className="space-y-2">
               <Label htmlFor="instagramUsername">
-                {t("profile.instagramUsername")}
+                {t("profile.publicUsernameLabel")}
               </Label>
               <Input
                 id="instagramUsername"
@@ -196,6 +169,9 @@ export function ProfilePageClient({
                 className="h-9"
                 {...register("instagramUsername")}
               />
+              <p className="text-xs text-muted-foreground">
+                {t("profile.publicUsernameHint")}
+              </p>
               {errors.instagramUsername && (
                 <p className="text-sm text-destructive">
                   {errors.instagramUsername.message}
@@ -222,8 +198,6 @@ export function ProfilePageClient({
           </form>
         )}
       </section>
-
-      <InstagramConnectionPanel connection={instagram} />
     </div>
   );
 }

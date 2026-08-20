@@ -21,7 +21,11 @@ export default async function ReelDetailPage({
 
   const related = allReels
     .filter((r) => r.id !== reel.id)
-    .sort((a, b) => b.views - a.views)
+    .sort((a, b) => {
+      const aScore = a.hasViewsData !== false ? a.views : -1;
+      const bScore = b.hasViewsData !== false ? b.views : -1;
+      return bScore - aScore;
+    })
     .slice(0, 4);
 
   return <ReelDetailContent reel={reel} related={related} />;

@@ -7,23 +7,22 @@ import { InlineStatsRow } from "@/components/shared/inline-stats-row";
 import { useFormatters } from "@/hooks/use-formatters";
 import { useTranslations } from "@/components/providers/locale-provider";
 import { cn } from "@/lib/utils";
-import type { DashboardStats, FollowersMetrics, SessionUser } from "@/types";
+import type { DashboardStats, SessionUser } from "@/types";
 
 interface CreatorSnapshotProps {
   user: SessionUser;
   stats: DashboardStats;
-  followers: FollowersMetrics;
 }
 
-export function CreatorSnapshot({ user, stats, followers }: CreatorSnapshotProps) {
+export function CreatorSnapshot({ user, stats }: CreatorSnapshotProps) {
   const t = useTranslations();
   const { formatNumber } = useFormatters();
-  const connected = Boolean(user.instagramUsername);
   const firstName = user.name.split(" ")[0];
   const periodLabel = t("metrics.period30d");
   const engagementValue = stats.hasEngagementData
     ? `${stats.engagementRate.toFixed(1)}%`
     : t("analytics.insufficientData");
+  const hasReels = stats.totalReels > 0;
 
   return (
     <section className="open-section space-y-6 pb-2 border-b border-border/25">
@@ -50,13 +49,13 @@ export function CreatorSnapshot({ user, stats, followers }: CreatorSnapshotProps
               <span
                 className={cn(
                   "h-1.5 w-1.5 rounded-full",
-                  connected ? "bg-brand-sage" : "bg-muted-foreground/40"
+                  hasReels ? "bg-brand-sage" : "bg-muted-foreground/40"
                 )}
               />
               <span className="text-xs text-muted-foreground">
-                {connected
-                  ? t("dashboard.accountActive")
-                  : t("dashboard.setInstagram")}
+                {hasReels
+                  ? t("dashboard.reelsTracked", { count: stats.totalReels })
+                  : t("dashboard.noReelsYet")}
               </span>
             </div>
           </div>
@@ -88,14 +87,9 @@ export function CreatorSnapshot({ user, stats, followers }: CreatorSnapshotProps
             change: stats.engagementRateChange,
           },
           {
-            label: t("common.followers"),
-            value:
-              followers.hasData !== false
-                ? formatNumber(followers.current)
-                : t("analytics.insufficientData"),
-            change: followers.hasHistoricalData
-              ? followers.growthPercent
-              : undefined,
+            label: t("common.likes"),
+            value: formatNumber(stats.totalLikes),
+            change: stats.totalLikesChange,
           },
         ]}
       />

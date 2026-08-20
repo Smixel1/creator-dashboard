@@ -6,7 +6,6 @@ import {
   computeViewsOverTime,
   type ReelWithStats,
 } from "@/services/analytics/calculations";
-import { getInstagramConnectionForUser } from "@/services/instagram/connection-service";
 import type {
   ReelAnalyticsOverview,
   AnalyticsPeriod,
@@ -71,15 +70,22 @@ function buildReelDetailChartStats(
 function mapReel(reel: {
   id: string;
   title: string;
-  coverUrl: string;
+  coverUrl: string | null;
   instagramUrl: string;
+  shortCode?: string | null;
+  ownerUsername?: string | null;
+  caption?: string | null;
   views: number | null;
   likes: number | null;
   comments: number | null;
   publishedAt: Date;
+  fetchedAt?: Date | null;
+  syncedAt?: Date | null;
   source?: string;
 }): ReelWithEngagement {
   const hasViewsData = reel.views != null;
+  const hasLikesData = reel.likes != null;
+  const hasCommentsData = reel.comments != null;
   const views = reel.views ?? 0;
   const likes = reel.likes ?? 0;
   const comments = reel.comments ?? 0;
@@ -89,15 +95,22 @@ function mapReel(reel: {
     title: reel.title,
     coverUrl: reel.coverUrl,
     instagramUrl: reel.instagramUrl,
+    shortCode: reel.shortCode ?? null,
+    ownerUsername: reel.ownerUsername ?? null,
+    caption: reel.caption ?? null,
     views,
     likes,
     comments,
     publishedAt: reel.publishedAt.toISOString(),
+    fetchedAt: reel.fetchedAt?.toISOString() ?? null,
+    syncedAt: reel.syncedAt?.toISOString() ?? null,
     engagementRate:
-      hasViewsData && reel.likes != null && reel.comments != null
-        ? calcEngagementRate(reel.views as number, reel.likes, reel.comments)
+      hasViewsData && hasLikesData && hasCommentsData
+        ? calcEngagementRate(reel.views as number, reel.likes as number, reel.comments as number)
         : 0,
     hasViewsData,
+    hasLikesData,
+    hasCommentsData,
     source: (reel.source as ReelDataSource | undefined) ?? "manual",
   };
 }
@@ -121,31 +134,16 @@ function resolveContentSource(
     return "mixed";
   }
 
+  if (sources.has("apify")) {
+    return "mixed";
+  }
+
   return "mock";
 }
 
-async function isInstagramAnalyticsActive(userId: string): Promise<boolean> {
-  const connection = await getInstagramConnectionForUser(userId);
-  if (!connection) return false;
-
-  const expired =
-    connection.tokenExpiresAt != null &&
-    connection.tokenExpiresAt.getTime() <= Date.now();
-
-  return !expired;
-}
-
-/** When Instagram is connected, analytics use only synced Instagram reels. */
-async function filterReelsForAnalytics(
-  userId: string,
-  reels: ReelWithStats[]
-): Promise<ReelWithStats[]> {
-  const instagramActive = await isInstagramAnalyticsActive(userId);
-  if (!instagramActive) {
-    return reels;
-  }
-
-  return reels.filter((reel) => reel.source === "instagram");
+/** Analytics uses real imported/synced reels; excludes explicit mock records. */
+function filterReelsForAnalytics(reels: ReelWithStats[]): ReelWithStats[] {
+  return reels.filter((reel) => reel.source !== "mock");
 }
 
 export async function getUserReels(
@@ -204,7 +202,7 @@ export async function getAnalyticsOverview(
   period: AnalyticsPeriod = "30d"
 ): Promise<ReelAnalyticsOverview> {
   const allReels = await fetchUserReelsWithStats(userId);
-  const reels = await filterReelsForAnalytics(userId, allReels);
+  const reels = filterReelsForAnalytics(allReels);
   const stats = buildDashboardStats(reels, period);
   const viewsOverTime = computeViewsOverTime(reels, period);
   const topPerforming = computeTopPerformingForPeriod(reels, period, 6);
@@ -223,9 +221,7 @@ export async function getAnalyticsOverview(
     viewsOverTime,
     topPerforming,
     recentReels,
-    contentSource: (await isInstagramAnalyticsActive(userId))
-      ? "instagram"
-      : resolveContentSource(reels),
+    contentSource: resolveContentSource(reels),
   };
 }
 
@@ -296,6 +292,9 @@ export async function updateReelFromFetchedData(
     latestStat.shares !== (data.shares ?? null);
 
   await prisma.$transaction(async (tx) => {
+    const now = new Date();
+    const isApifySource = data.source === "apify";
+
     await tx.reel.update({
       where: { id: reelId },
       data: {
@@ -303,6 +302,9 @@ export async function updateReelFromFetchedData(
         coverUrl: data.coverUrl,
         instagramUrl: data.instagramUrl,
         instagramMediaId: data.externalId,
+        shortCode: data.shortCode,
+        ownerUsername: data.username,
+        caption: data.caption,
         source: data.source ?? "manual",
         views: data.views,
         likes: data.likes,
@@ -310,7 +312,9 @@ export async function updateReelFromFetchedData(
         reach: data.reach ?? null,
         shares: data.shares ?? null,
         publishedAt: data.publishedAt,
-        syncedAt: data.source === "instagram" ? new Date() : undefined,
+        fetchedAt: isApifySource ? (data.fetchedAt ?? now) : undefined,
+        syncedAt:
+          data.source === "instagram" || isApifySource ? now : undefined,
       },
     });
 
@@ -335,11 +339,17 @@ export async function createReelFromUrl(
   data: Omit<NormalizedReelData, "instagramUrl"> & { instagramUrl?: string }
 ) {
   const canonicalUrl = data.instagramUrl ?? instagramUrl;
+  const now = new Date();
+  const isApifySource = data.source === "apify";
+
   const reel = await prisma.reel.create({
     data: {
       userId,
       instagramUrl: canonicalUrl,
       instagramMediaId: data.externalId,
+      shortCode: data.shortCode,
+      ownerUsername: data.username,
+      caption: data.caption,
       source: data.source ?? "manual",
       title: data.title,
       coverUrl: data.coverUrl,
@@ -349,7 +359,9 @@ export async function createReelFromUrl(
       reach: data.reach ?? null,
       shares: data.shares ?? null,
       publishedAt: data.publishedAt,
-      syncedAt: data.source === "instagram" ? new Date() : undefined,
+      fetchedAt: isApifySource ? (data.fetchedAt ?? now) : null,
+      syncedAt:
+        data.source === "instagram" || isApifySource ? now : undefined,
       stats: {
         create: {
           views: data.views,
@@ -437,7 +449,7 @@ export async function upsertReelsFromInstagram(
 
 export async function getProfileStats(userId: string) {
   const allReels = await fetchUserReelsWithStats(userId);
-  const reels = await filterReelsForAnalytics(userId, allReels);
+  const reels = filterReelsForAnalytics(allReels);
   const totalReels = reels.length;
   const totalViews = reels.reduce(
     (sum, reel) => (reel.views != null ? sum + reel.views : sum),

@@ -8,11 +8,11 @@ export interface ReelMetrics {
   comments: number;
 }
 
-export type ReelDataSource = "instagram" | "mock" | "manual";
+export type ReelDataSource = "instagram" | "mock" | "manual" | "apify";
 
 export interface NormalizedReelData {
   title: string;
-  coverUrl: string;
+  coverUrl: string | null;
   views: number | null;
   likes: number | null;
   comments: number | null;
@@ -28,6 +28,7 @@ export interface NormalizedReelData {
   caption?: string;
   shares?: number | null;
   reach?: number | null;
+  fetchedAt?: Date;
 }
 
 export interface DashboardStats {
@@ -80,24 +81,27 @@ export interface ReelAnalyticsOverview {
   contentSource: "instagram" | "mock" | "mixed";
 }
 
-export interface AnalyticsOverview extends ReelAnalyticsOverview {
-  followers: FollowersMetrics;
-  followersOverTime: ChartDataPoint[];
-  followersSource: "instagram" | "mock";
-  followersHasHistoricalData: boolean;
-}
+/** @deprecated Use ReelAnalyticsOverview — followers removed from product UX. */
+export type AnalyticsOverview = ReelAnalyticsOverview;
 
 export interface ReelWithEngagement {
   id: string;
   title: string;
-  coverUrl: string;
+  coverUrl: string | null;
   instagramUrl: string;
+  shortCode?: string | null;
+  ownerUsername?: string | null;
+  caption?: string | null;
   views: number;
   likes: number;
   comments: number;
   publishedAt: string;
+  fetchedAt?: string | null;
+  syncedAt?: string | null;
   engagementRate: number;
   hasViewsData?: boolean;
+  hasLikesData?: boolean;
+  hasCommentsData?: boolean;
   source?: ReelDataSource;
 }
 

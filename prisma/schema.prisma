@@ -43,15 +43,19 @@ model Reel {
   userId           String
   instagramUrl     String
   instagramMediaId String?
+  shortCode        String?
+  ownerUsername    String?
+  caption          String?
   source           String     @default("manual")
   title            String
-  coverUrl         String
+  coverUrl         String?
   views            Int?
   likes            Int?
   comments         Int?
   reach            Int?
   shares           Int?
   publishedAt      DateTime
+  fetchedAt        DateTime?
   syncedAt         DateTime?
   createdAt        DateTime   @default(now())
   updatedAt        DateTime   @updatedAt

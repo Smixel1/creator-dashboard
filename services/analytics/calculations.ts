@@ -12,7 +12,7 @@ export type ReelStatRow = {
 export type ReelWithStats = {
   id: string;
   title: string;
-  coverUrl: string;
+  coverUrl: string | null;
   instagramUrl: string;
   views: number | null;
   likes: number | null;

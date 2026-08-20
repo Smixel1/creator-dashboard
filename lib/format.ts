@@ -25,9 +25,10 @@ export function formatPercent(value: number): string {
 export function formatEngagementRate(
   views: number,
   rate: number,
-  insufficientLabel: string
+  insufficientLabel: string,
+  hasCompleteData = true
 ): string {
-  if (views === 0) return insufficientLabel;
+  if (!hasCompleteData || views === 0) return insufficientLabel;
   return formatPercent(rate);
 }
 

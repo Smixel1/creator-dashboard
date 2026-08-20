@@ -136,10 +136,20 @@ const REEL_DATA = [
 
 async function main() {
   const passwordHash = await bcrypt.hash("password123", 12);
+  const demoPasswordHash = await bcrypt.hash("demo123456", 12);
 
   await prisma.reelStat.deleteMany();
   await prisma.reel.deleteMany();
   await prisma.user.deleteMany();
+
+  await prisma.user.create({
+    data: {
+      name: "Demo Creator",
+      email: "demo@creatorpulse.local",
+      passwordHash: demoPasswordHash,
+      instagramUsername: "demo.creator",
+    },
+  });
 
   const anna = await prisma.user.create({
     data: {
@@ -210,7 +220,9 @@ async function main() {
     });
   }
 
-  console.log("Seed completed. Demo login: anna@creator.io / password123");
+  console.log("Seed completed.");
+  console.log("Dev test account: demo@creatorpulse.local / demo123456");
+  console.log("Legacy demo account: anna@creator.io / password123");
 }
 
 main()

@@ -73,7 +73,3 @@ export async function requireSessionUser(): Promise<SessionUser> {
   return user;
 }
 
-export async function clearStaleSession() {
-  const cookieStore = await cookies();
-  cookieStore.delete(AUTH_COOKIE);
-}

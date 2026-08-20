@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { getAppBaseUrl } from "@/lib/instagram/oauth/config";
 import { verifyInstagramOAuthState } from "@/lib/instagram/oauth/state";
 import { getSessionUserId } from "@/lib/auth";
 import {
@@ -9,8 +8,8 @@ import {
 import { completeInstagramOAuth } from "@/services/instagram/sync-service";
 import { InstagramApiError } from "@/services/instagram/meta-api-client";
 
-function redirectToProfile(status: string) {
-  const base = getAppBaseUrl();
+function redirectToProfile(request: Request, status: string) {
+  const base = new URL(request.url).origin;
   return NextResponse.redirect(`${base}/profile?instagram=${status}`);
 }
 
@@ -23,23 +22,23 @@ export async function GET(request: Request) {
 
   if (error) {
     const mapped = mapInstagramOAuthCallbackError(error, errorReason);
-    return redirectToProfile(mapped);
+    return redirectToProfile(request, mapped);
   }
 
   if (!code || !state) {
-    return redirectToProfile("oauth_failed");
+    return redirectToProfile(request, "oauth_failed");
   }
 
   const sessionUserId = await getSessionUserId();
   if (!sessionUserId) {
-    return redirectToProfile("session_required");
+    return redirectToProfile(request, "session_required");
   }
 
   try {
     const { userId } = await verifyInstagramOAuthState(state);
 
     if (userId !== sessionUserId) {
-      return redirectToProfile("oauth_failed");
+      return redirectToProfile(request, "oauth_failed");
     }
 
     const tokens = await exchangeInstagramAuthCode(code);
@@ -50,18 +49,18 @@ export async function GET(request: Request) {
       tokens.instagramUserId
     );
 
-    return redirectToProfile("connected");
+    return redirectToProfile(request, "connected");
   } catch (err) {
     if (err instanceof InstagramApiError) {
       if (err.code === "PERSONAL_ACCOUNT") {
-        return redirectToProfile("professional_required");
+        return redirectToProfile(request, "professional_required");
       }
       if (err.status === 429) {
-        return redirectToProfile("rate_limited");
+        return redirectToProfile(request, "rate_limited");
       }
     }
 
     console.error("[api/instagram/callback]", err instanceof Error ? err.message : err);
-    return redirectToProfile("oauth_failed");
+    return redirectToProfile(request, "oauth_failed");
   }
 }

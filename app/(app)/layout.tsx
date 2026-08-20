@@ -2,15 +2,7 @@ import type { ReactNode } from "react";
 
 import { redirect } from "next/navigation";
 
-import {
-
-  clearStaleSession,
-
-  getSessionUser,
-
-  getSessionUserId,
-
-} from "@/lib/auth";
+import { getSessionUser, getSessionUserId } from "@/lib/auth";
 
 import { getServerLocale } from "@/lib/i18n/server";
 
@@ -35,9 +27,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
     const userId = await getSessionUserId();
 
     if (userId) {
-
-      await clearStaleSession();
-
+      redirect("/api/auth/clear-stale-session");
     }
 
     redirect("/login");

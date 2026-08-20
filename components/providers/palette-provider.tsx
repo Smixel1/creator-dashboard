@@ -1,5 +1,6 @@
 "use client";
 
+import { useServerInsertedHTML } from "next/navigation";
 import {
   createContext,
   useCallback,
@@ -11,6 +12,7 @@ import {
 import {
   DEFAULT_PALETTE,
   normalizePalette,
+  PALETTE_INIT_SCRIPT,
   PALETTE_STORAGE_KEY,
   type PaletteValue,
 } from "@/lib/palette";
@@ -69,6 +71,14 @@ interface PaletteProviderProps {
 }
 
 export function PaletteProvider({ children }: PaletteProviderProps) {
+  useServerInsertedHTML(() => (
+    <script
+      dangerouslySetInnerHTML={{
+        __html: PALETTE_INIT_SCRIPT,
+      }}
+    />
+  ));
+
   const palette = useSyncExternalStore(
     subscribePalette,
     readPaletteSnapshot,

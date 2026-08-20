@@ -4,7 +4,6 @@ import { Cormorant_Garamond, DM_Sans, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { PaletteProvider } from "@/components/providers/palette-provider";
-import { PALETTE_STORAGE_KEY } from "@/lib/palette";
 import { createTranslator } from "@/lib/i18n";
 import { LOCALE_COOKIE, parseLocale } from "@/lib/locale-cookie";
 import "./globals.css";
@@ -48,13 +47,6 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       data-palette="coral"
       className={`${dmSans.variable} ${cormorant.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{var p=localStorage.getItem('${PALETTE_STORAGE_KEY}');document.documentElement.setAttribute('data-palette',p==='blue'?'blue':'coral')}catch(e){}})();`,
-          }}
-        />
-      </head>
       <body className="min-h-full flex flex-col font-sans">
         <ThemeProvider
           attribute="class"

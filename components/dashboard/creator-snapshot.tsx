@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { InlineStatsRow } from "@/components/shared/inline-stats-row";
 import { useFormatters } from "@/hooks/use-formatters";
@@ -18,7 +17,6 @@ export function CreatorSnapshot({ user, stats }: CreatorSnapshotProps) {
   const t = useTranslations();
   const { formatNumber } = useFormatters();
   const firstName = user.name.split(" ")[0];
-  const periodLabel = t("metrics.period30d");
   const engagementValue = stats.hasEngagementData
     ? `${stats.engagementRate.toFixed(1)}%`
     : t("analytics.insufficientData");
@@ -60,17 +58,6 @@ export function CreatorSnapshot({ user, stats }: CreatorSnapshotProps) {
             </div>
           </div>
         </Link>
-
-        <div className="flex items-center gap-3 sm:ml-auto shrink-0">
-          <span className="period-badge">{periodLabel}</span>
-          <Link
-            href="/analytics"
-            className="inline-flex items-center gap-1.5 text-xs font-medium link-accent"
-          >
-            {t("common.detailedAnalytics")}
-            <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
-        </div>
       </div>
 
       <InlineStatsRow

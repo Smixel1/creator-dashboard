@@ -64,6 +64,19 @@ export async function POST(request: Request) {
       );
     }
 
+    if (isInstagramFetchError(error)) {
+      console.error("[api/reels:POST]", {
+        code: error.code,
+        message: error.message.slice(0, 200),
+      });
+    } else {
+      console.error("[api/reels:POST]", {
+        errorType: error instanceof Error ? error.name : typeof error,
+        message:
+          error instanceof Error ? error.message.slice(0, 200) : "unknown",
+      });
+    }
+
     const message = mapAddReelError(error, t);
     const status = isInstagramFetchError(error) ? 422 : 500;
 

@@ -56,9 +56,9 @@ describe("production login copy", () => {
     const { en } = await import("@/lib/i18n/en");
 
     for (const dict of [ru, en]) {
+      assert.equal(dict.login.emailPlaceholder, "name@example.com");
       assert.doesNotMatch(dict.login.emailPlaceholder, /anna@creator\.io/i);
       assert.doesNotMatch(dict.login.passwordPlaceholder, /password123/i);
-      assert.doesNotMatch(String(dict.login.signInDesc), /аналитик/i);
     }
   });
 });

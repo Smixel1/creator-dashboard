@@ -100,6 +100,7 @@ export function ForgotPasswordForm() {
             id="email"
             type="email"
             autoComplete="email"
+            placeholder={t("login.emailPlaceholder")}
             disabled={isSubmitting}
             {...register("email")}
           />

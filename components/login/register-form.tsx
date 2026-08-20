@@ -11,31 +11,37 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useTranslations } from "@/components/providers/locale-provider";
 import { useValidationSchemas } from "@/hooks/use-validation-schemas";
-import type { LoginInput } from "@/lib/validations";
+import type { RegisterInput } from "@/lib/validations";
 
-export function LoginForm() {
+export function RegisterForm() {
   const router = useRouter();
   const t = useTranslations();
-  const { loginSchema } = useValidationSchemas();
+  const { registerSchema } = useValidationSchemas();
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const resolver = useMemo(() => zodResolver(loginSchema), [loginSchema]);
+  const resolver = useMemo(() => zodResolver(registerSchema), [registerSchema]);
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<LoginInput>({
+  } = useForm<RegisterInput>({
     resolver,
-    defaultValues: { email: "anna@creator.io", password: "password123" },
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
   });
 
-  async function onSubmit(data: LoginInput) {
+  async function onSubmit(data: RegisterInput) {
     setError(null);
 
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -50,19 +56,14 @@ export function LoginForm() {
       }
 
       if (!res.ok) {
-        setError(
-          body.error ??
-            (res.status === 401
-              ? t("login.invalidCredentials")
-              : t("login.loginFailed"))
-        );
+        setError(body.error ?? t("register.registerFailed"));
         return;
       }
 
       router.push("/dashboard");
       router.refresh();
     } catch {
-      setError(t("login.networkError"));
+      setError(t("register.networkError"));
     }
   }
 
@@ -77,12 +78,27 @@ export function LoginForm() {
       noValidate
     >
       <div className="space-y-2">
-        <Label htmlFor="email">{t("login.email")}</Label>
+        <Label htmlFor="name">{t("register.name")}</Label>
+        <Input
+          id="name"
+          type="text"
+          autoComplete="name"
+          placeholder={t("register.namePlaceholder")}
+          disabled={isSubmitting}
+          {...register("name")}
+        />
+        {errors.name && (
+          <p className="text-sm text-destructive">{errors.name.message}</p>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="email">{t("register.email")}</Label>
         <Input
           id="email"
           type="email"
-          placeholder={t("login.emailPlaceholder")}
           autoComplete="email"
+          placeholder={t("register.emailPlaceholder")}
           disabled={isSubmitting}
           {...register("email")}
         />
@@ -92,21 +108,13 @@ export function LoginForm() {
       </div>
 
       <div className="space-y-2">
-        <div className="flex items-center justify-between gap-2">
-          <Label htmlFor="password">{t("login.password")}</Label>
-          <Link
-            href="/forgot-password"
-            className="text-xs font-medium link-accent shrink-0"
-          >
-            {t("passwordRecovery.forgotPassword")}
-          </Link>
-        </div>
+        <Label htmlFor="password">{t("register.password")}</Label>
         <div className="relative">
           <Input
             id="password"
             type={showPassword ? "text" : "password"}
-            placeholder={t("login.passwordPlaceholder")}
-            autoComplete="current-password"
+            autoComplete="new-password"
+            placeholder={t("register.passwordPlaceholder")}
             className="pr-10"
             disabled={isSubmitting}
             {...register("password")}
@@ -116,7 +124,7 @@ export function LoginForm() {
             onClick={() => setShowPassword(!showPassword)}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
             aria-label={
-              showPassword ? t("login.hidePassword") : t("login.showPassword")
+              showPassword ? t("register.hidePassword") : t("register.showPassword")
             }
             tabIndex={-1}
           >
@@ -132,6 +140,43 @@ export function LoginForm() {
         )}
       </div>
 
+      <div className="space-y-2">
+        <Label htmlFor="confirmPassword">{t("register.confirmPassword")}</Label>
+        <div className="relative">
+          <Input
+            id="confirmPassword"
+            type={showConfirmPassword ? "text" : "password"}
+            autoComplete="new-password"
+            placeholder={t("register.confirmPasswordPlaceholder")}
+            className="pr-10"
+            disabled={isSubmitting}
+            {...register("confirmPassword")}
+          />
+          <button
+            type="button"
+            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            aria-label={
+              showConfirmPassword
+                ? t("register.hidePassword")
+                : t("register.showPassword")
+            }
+            tabIndex={-1}
+          >
+            {showConfirmPassword ? (
+              <EyeOff className="h-4 w-4" />
+            ) : (
+              <Eye className="h-4 w-4" />
+            )}
+          </button>
+        </div>
+        {errors.confirmPassword && (
+          <p className="text-sm text-destructive">
+            {errors.confirmPassword.message}
+          </p>
+        )}
+      </div>
+
       {error && (
         <div
           role="alert"
@@ -142,13 +187,13 @@ export function LoginForm() {
       )}
 
       <Button type="submit" className="w-full rounded-full h-11" disabled={isSubmitting}>
-        {isSubmitting ? t("login.signingIn") : t("login.signIn")}
+        {isSubmitting ? t("register.creating") : t("register.createAccount")}
       </Button>
 
       <p className="text-center text-sm text-muted-foreground">
-        {t("login.noAccount")}{" "}
-        <Link href="/register" className="font-medium link-accent">
-          {t("login.createAccountLink")}
+        {t("register.alreadyHaveAccount")}{" "}
+        <Link href="/login" className="font-medium link-accent">
+          {t("register.signInLink")}
         </Link>
       </p>
     </form>

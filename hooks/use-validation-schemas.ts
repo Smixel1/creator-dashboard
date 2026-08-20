@@ -7,6 +7,7 @@ import {
   createForgotPasswordSchema,
   createLoginSchema,
   createProfileSchema,
+  createRegisterSchema,
   createReelUrlSchema,
   createResetPasswordSchema,
 } from "@/lib/validations";
@@ -17,6 +18,7 @@ export function useValidationSchemas() {
   return useMemo(
     () => ({
       loginSchema: createLoginSchema(t),
+      registerSchema: createRegisterSchema(t),
       profileSchema: createProfileSchema(t),
       reelUrlSchema: createReelUrlSchema(t),
       changePasswordSchema: createChangePasswordSchema(t),

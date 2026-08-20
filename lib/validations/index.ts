@@ -10,6 +10,22 @@ export function createLoginSchema(t: Translator) {
 
 export type LoginInput = z.infer<ReturnType<typeof createLoginSchema>>;
 
+export function createRegisterSchema(t: Translator) {
+  return z
+    .object({
+      name: z.string().trim().min(2, t("validation.nameMin")),
+      email: z.string().trim().email(t("validation.email")),
+      password: z.string().min(8, t("validation.registerPasswordMin")),
+      confirmPassword: z.string().min(1, t("validation.confirmPasswordRequired")),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+      message: t("validation.passwordMatch"),
+      path: ["confirmPassword"],
+    });
+}
+
+export type RegisterInput = z.infer<ReturnType<typeof createRegisterSchema>>;
+
 export function createProfileSchema(t: Translator) {
   return z.object({
     name: z.string().min(2, t("validation.nameMin")),

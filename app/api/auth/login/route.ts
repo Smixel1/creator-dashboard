@@ -1,25 +1,24 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import {
-  AUTH_COOKIE,
-  createSessionToken,
-  getSessionCookieOptions,
-} from "@/lib/auth-session";
+import { isAuthConfigReady, logAuthError } from "@/lib/auth/log-auth-error";
+import { normalizeAuthEmail } from "@/lib/auth/normalize-email";
+import { createAuthenticatedResponse } from "@/lib/auth-session";
 import { createLoginSchema } from "@/lib/validations";
 import { createTranslator } from "@/lib/i18n";
 import { getRequestLocale } from "@/lib/i18n/request";
-import {
-  getLocaleCookieOptions,
-  LOCALE_COOKIE,
-} from "@/lib/locale-cookie";
 
 export async function POST(request: Request) {
-  try {
-    const locale = await getRequestLocale();
-    const t = createTranslator(locale);
-    const loginSchema = createLoginSchema(t);
+  const locale = await getRequestLocale();
+  const t = createTranslator(locale);
 
+  if (!isAuthConfigReady()) {
+    console.error("[auth/login] AUTH_SECRET is not configured");
+    return NextResponse.json({ error: t("login.loginFailed") }, { status: 500 });
+  }
+
+  try {
+    const loginSchema = createLoginSchema(t);
     const body = await request.json();
     const parsed = loginSchema.safeParse(body);
 
@@ -30,7 +29,8 @@ export async function POST(request: Request) {
       );
     }
 
-    const { email, password } = parsed.data;
+    const email = normalizeAuthEmail(parsed.data.email);
+    const { password } = parsed.data;
     const user = await prisma.user.findUnique({ where: { email } });
 
     if (!user) {
@@ -48,17 +48,9 @@ export async function POST(request: Request) {
       );
     }
 
-    const token = await createSessionToken(user.id);
-    const response = NextResponse.json({ success: true });
-    response.cookies.set(AUTH_COOKIE, token, getSessionCookieOptions());
-    response.cookies.set(LOCALE_COOKIE, locale, getLocaleCookieOptions());
-    return response;
+    return createAuthenticatedResponse(user.id, locale);
   } catch (error) {
-    console.error("[auth/login]", error);
-    const t = createTranslator(await getRequestLocale());
-    return NextResponse.json(
-      { error: t("login.loginFailed") },
-      { status: 500 }
-    );
+    logAuthError("auth/login", error);
+    return NextResponse.json({ error: t("login.loginFailed") }, { status: 500 });
   }
 }

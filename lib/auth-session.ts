@@ -1,4 +1,9 @@
 import { jwtVerify, SignJWT } from "jose";
+import { NextResponse } from "next/server";
+import {
+  getLocaleCookieOptions,
+  LOCALE_COOKIE,
+} from "@/lib/locale-cookie";
 
 export const AUTH_COOKIE = "creator_session";
 export const SESSION_DURATION = 60 * 60 * 24 * 7; // 7 days
@@ -41,4 +46,15 @@ export function getClearSessionCookieOptions() {
     maxAge: 0,
     path: "/",
   };
+}
+
+export async function createAuthenticatedResponse(
+  userId: string,
+  locale: string
+): Promise<NextResponse> {
+  const token = await createSessionToken(userId);
+  const response = NextResponse.json({ success: true });
+  response.cookies.set(AUTH_COOKIE, token, getSessionCookieOptions());
+  response.cookies.set(LOCALE_COOKIE, locale, getLocaleCookieOptions());
+  return response;
 }

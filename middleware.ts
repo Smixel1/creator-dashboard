@@ -8,9 +8,11 @@ import {
 
 const PUBLIC_PATHS = [
   "/login",
+  "/register",
   "/forgot-password",
   "/reset-password",
   "/api/auth/login",
+  "/api/auth/register",
   "/api/auth/logout",
   "/api/auth/forgot-password",
   "/api/auth/reset-password",

@@ -4,6 +4,8 @@ import { put } from "@vercel/blob";
 import { AVATAR_PUBLIC_PREFIX } from "@/lib/avatar/constants";
 import {
   AvatarStorageError,
+  getAvatarStorageDiagnostics,
+  hasBlobReadWriteToken,
   isBlobStorageEnabled,
   shouldUseLocalAvatarFilesystem,
 } from "@/lib/avatar/storage-config";
@@ -51,6 +53,35 @@ async function persistToFilesystem(
   return publicUrl;
 }
 
+function isBlobCredentialError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const message = error.message.toLowerCase();
+  return (
+    message.includes("no blob credentials found") ||
+    message.includes("no read-write token found")
+  );
+}
+
+function getBlobHttpStatus(error: unknown): number | undefined {
+  if (!error || typeof error !== "object") {
+    return undefined;
+  }
+
+  const status = (error as { status?: unknown }).status;
+  return typeof status === "number" ? status : undefined;
+}
+
+export function mapBlobUploadError(error: unknown): AvatarStorageError {
+  if (isBlobCredentialError(error)) {
+    return new AvatarStorageError("NOT_CONFIGURED");
+  }
+
+  return new AvatarStorageError("UPLOAD_FAILED");
+}
+
 async function persistToBlob(
   userId: string,
   buffer: Buffer,
@@ -67,9 +98,25 @@ async function persistToBlob(
       addRandomSuffix: false,
     });
 
+    if (!blob.url) {
+      throw new AvatarStorageError("UPLOAD_FAILED");
+    }
+
     return blob.url;
-  } catch {
-    throw new AvatarStorageError("UPLOAD_FAILED");
+  } catch (error) {
+    const diagnostics = getAvatarStorageDiagnostics();
+    console.error("[avatar/storage]", {
+      errorCode: isBlobCredentialError(error)
+        ? "NOT_CONFIGURED"
+        : "UPLOAD_FAILED",
+      httpStatus: getBlobHttpStatus(error),
+      storageProvider: diagnostics.storageProvider,
+      hasBlobToken: diagnostics.hasBlobToken,
+      fileType: mimeType,
+      fileSize: buffer.length,
+    });
+
+    throw mapBlobUploadError(error);
   }
 }
 
@@ -86,6 +133,14 @@ export async function persistAvatarFile(
   if (shouldUseLocalAvatarFilesystem()) {
     return persistToFilesystem(userId, buffer, extension);
   }
+
+  console.error("[avatar/storage]", {
+    errorCode: "NOT_CONFIGURED",
+    storageProvider: "none",
+    hasBlobToken: hasBlobReadWriteToken(),
+    fileType: mimeType,
+    fileSize: buffer.length,
+  });
 
   throw new AvatarStorageError("NOT_CONFIGURED");
 }

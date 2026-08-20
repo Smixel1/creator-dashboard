@@ -274,8 +274,7 @@ export const ru = {
     savePhoto: "Сохранить фото",
     uploading: "Загрузка...",
     uploadError: "Не удалось загрузить фото.",
-    uploadNotConfigured:
-      "Загрузка фото не настроена на сервере. Обратитесь в поддержку.",
+    uploadNotConfigured: "Загрузка фото не настроена на сервере.",
     uploadNetworkError: "Не удалось загрузить фото. Проверьте подключение.",
     invalidImageType: "Поддерживаются только JPEG, PNG, WebP и GIF.",
     imageTooLarge: "Размер файла не должен превышать {max} МБ.",

@@ -274,8 +274,7 @@ export const en = {
     savePhoto: "Save photo",
     uploading: "Uploading...",
     uploadError: "Could not upload photo.",
-    uploadNotConfigured:
-      "Photo upload is not configured on the server. Contact support.",
+    uploadNotConfigured: "Photo upload is not configured on the server.",
     uploadNetworkError: "Could not upload photo. Check your connection.",
     invalidImageType: "Only JPEG, PNG, WebP, and GIF are supported.",
     imageTooLarge: "File size must not exceed {max} MB.",
